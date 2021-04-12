@@ -14,15 +14,7 @@ public class PlayWaveFile {
      * @param args
      *            the name of the wave file to play
      */
-    public static void main(String[] args) {
-
-	// get the command line parameters
-	if (args.length < 1) {
-	    System.err.println("usage: java -jar PlayWaveFile.jar [filename]");
-	    return;
-	}
-	String filename = args[0];
-
+    public static void play(String filename) {
 	// opens the inputStream
 	FileInputStream inputStream;
 	try {

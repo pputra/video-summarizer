@@ -10,6 +10,8 @@ public class PlayVideo extends JFrame {
     private int frameIndex = 0;
     private final String[] frames = new String[NUM_FRAMES];
 
+    private static volatile boolean isVideoReady = false;
+
     public PlayVideo(String workDir) {
         super("Video Summarizer");
         initFrames(workDir);
@@ -31,6 +33,7 @@ public class PlayVideo extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
+        isVideoReady = true;
     }
 
     private void initFrames(String workDir) {
@@ -48,6 +51,16 @@ public class PlayVideo extends JFrame {
     }
 
     public static void main(String[] args) {
-        new PlayVideo(args[0]);
+        Thread videoTh = new Thread(() -> {
+            new PlayVideo(args[0]);
+        });
+
+        Thread soundTh = new Thread(() -> {
+            while (!isVideoReady);
+            PlayWaveFile.play(args[1]);
+        });
+
+        videoTh.start();
+        soundTh.start();
     }
 }
