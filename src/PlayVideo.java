@@ -38,7 +38,7 @@ public class PlayVideo extends JFrame {
 
     private void initFrames(String workDir) {
         for (int i = 1; i < frames.length; i++) {
-            frames[i] = workDir + "project_dataset/frames/soccer/frame" + i + ".jpg";
+            frames[i] = workDir + "frame" + i + ".jpg";
         }
     }
 
