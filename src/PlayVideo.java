@@ -1,12 +1,19 @@
-import java.awt.Color;
-import java.awt.Image;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.*;
 
-public class PlayVideo extends JFrame {
+public class PlayVideo extends JFrame implements ActionListener {
     private final int FRAMES_PER_SECOND = 30;
     private final int NUM_FRAMES = 16200;
+    private final int FRAMES_HEIGHT = 480;
+    private final int FRAMES_WIDTH = 640;
 
-    private final JLabel label;
+    private final JLabel framesLabel;
+    private final Button playButton = new Button("play");
+    private final Button pauseButton = new Button("pause");
+    private final Button stopButton = new Button("stop");
+
     private int frameIndex = 0;
     private final String[] frames = new String[NUM_FRAMES];
 
@@ -15,8 +22,8 @@ public class PlayVideo extends JFrame {
     public PlayVideo(String workDir) {
         super("Video Summarizer");
         initFrames(workDir);
-        label = new JLabel();
-        label.setBounds(0, 0, 1280, 720);
+        framesLabel = new JLabel();
+        framesLabel.setBounds(0, 0, FRAMES_WIDTH, FRAMES_HEIGHT);
 
         loadFrame(0);
 
@@ -25,14 +32,23 @@ public class PlayVideo extends JFrame {
             frameIndex++;
         });
 
-        add(label);
-        timer.start();
-        setLayout(null);
+        add(framesLabel);
+        add(playButton);
+        add(pauseButton);
+        add(stopButton);
+
+        setLayout(new FlowLayout());
         setSize(1280, 720);
         getContentPane().setBackground(Color.decode("#000000"));
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        playButton.addActionListener(this);
+        pauseButton.addActionListener(this);
+        stopButton.addActionListener(this);
+
         setVisible(true);
+        timer.start();
         isVideoReady = true;
     }
 
@@ -45,9 +61,9 @@ public class PlayVideo extends JFrame {
     private void loadFrame(int i) {
         ImageIcon icon = new ImageIcon(frames[i]);
         Image img = icon.getImage();
-        Image newImg = img.getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH);
+        Image newImg = img.getScaledInstance(FRAMES_WIDTH, FRAMES_HEIGHT, Image.SCALE_SMOOTH);
         ImageIcon newImc = new ImageIcon(newImg);
-        label.setIcon(newImc);
+        framesLabel.setIcon(newImc);
     }
 
     public static void main(String[] args) {
@@ -62,5 +78,10 @@ public class PlayVideo extends JFrame {
 
         videoTh.start();
         soundTh.start();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
     }
 }
