@@ -53,7 +53,7 @@ public class PlayVideo extends JFrame implements ActionListener {
     }
 
     private void initFrames(String workDir) {
-        for (int i = 1; i < frames.length; i++) {
+        for (int i = 0; i < frames.length; i++) {
             frames[i] = workDir + "frame" + i + ".jpg";
         }
     }
