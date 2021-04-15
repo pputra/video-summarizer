@@ -16,25 +16,24 @@ public class PlayWaveFile {
      */
     public static void play(String filename) {
 	// opens the inputStream
-	FileInputStream inputStream;
-	try {
-	    inputStream = new FileInputStream(filename);
-	    //inputStream = this.getClass().getResourceAsStream(filename);
-	} catch (FileNotFoundException e) {
-	    e.printStackTrace();
-	    return;
-	}
+		FileInputStream inputStream;
+		try {
+			inputStream = new FileInputStream(filename);
+			//inputStream = this.getClass().getResourceAsStream(filename);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return;
+		}
 
-	// initializes the playSound Object
-	PlaySound playSound = new PlaySound(inputStream);
+		// initializes the playSound Object
+		PlaySound playSound = new PlaySound(filename);
 
-	// plays the sound
-	try {
-	    playSound.play();
-	} catch (PlayWaveException e) {
-	    e.printStackTrace();
-	    return;
-	}
+		// plays the sound
+			try {
+				playSound.play();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
     }
-
 }

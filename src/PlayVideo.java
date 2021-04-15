@@ -16,6 +16,7 @@ public class PlayVideo extends JFrame implements ActionListener {
 
     private int frameIndex = 0;
     private final String[] frames = new String[NUM_FRAMES];
+    private PlaySound sound;
 
     private static volatile boolean isVideoPlaying = false;
 
@@ -38,8 +39,14 @@ public class PlayVideo extends JFrame implements ActionListener {
         });
 
         Thread soundTh = new Thread(() -> {
-            while (!isVideoPlaying) ;
-            PlayWaveFile.play(soundWorkDir);
+            sound = new PlaySound(soundWorkDir);
+            while (frameIndex < NUM_FRAMES) {
+                if (isVideoPlaying) {
+                    sound.play();
+                } else {
+                    sound.pause();
+                }
+            }
         });
 
         videoTh.start();
@@ -97,6 +104,7 @@ public class PlayVideo extends JFrame implements ActionListener {
             System.out.println("stop button clicked");
             isVideoPlaying = false;
             frameIndex = 0;
+            sound.stop();
         }
     }
 
