@@ -9,7 +9,7 @@ public class PlayVideo extends JFrame implements ActionListener {
     private final int FRAMES_HEIGHT = 480;
     private final int FRAMES_WIDTH = 640;
 
-    private final JLabel framesLabel;
+    private JLabel framesLabel;
     private final Button playButton = new Button("play");
     private final Button pauseButton = new Button("pause");
     private final Button stopButton = new Button("stop");
@@ -17,20 +17,41 @@ public class PlayVideo extends JFrame implements ActionListener {
     private int frameIndex = 0;
     private final String[] frames = new String[NUM_FRAMES];
 
-    private static volatile boolean isVideoReady = false;
+    private static volatile boolean isVideoPlaying = false;
 
-    public PlayVideo(String workDir) {
+    public PlayVideo(String framesWorkDir, String soundWorkDir) {
         super("Video Summarizer");
+        initVideoPlayer(framesWorkDir);
+
+        Thread videoTh = new Thread(() -> {
+            while (frameIndex < NUM_FRAMES) {
+                try {
+                    if (isVideoPlaying) {
+                        Thread.sleep(1000 / FRAMES_PER_SECOND);
+                        loadFrame(frameIndex);
+                        frameIndex++;
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Thread soundTh = new Thread(() -> {
+            while (!isVideoPlaying) ;
+            PlayWaveFile.play(soundWorkDir);
+        });
+
+        videoTh.start();
+        soundTh.start();
+    }
+
+    private void initVideoPlayer(String workDir) {
         initFrames(workDir);
         framesLabel = new JLabel();
         framesLabel.setBounds(0, 0, FRAMES_WIDTH, FRAMES_HEIGHT);
 
         loadFrame(0);
-
-        Timer timer = new Timer(1000 / FRAMES_PER_SECOND, e -> {
-            loadFrame(frameIndex);
-            frameIndex++;
-        });
 
         add(framesLabel);
         add(playButton);
@@ -48,8 +69,6 @@ public class PlayVideo extends JFrame implements ActionListener {
         stopButton.addActionListener(this);
 
         setVisible(true);
-        timer.start();
-        isVideoReady = true;
     }
 
     private void initFrames(String workDir) {
@@ -66,22 +85,22 @@ public class PlayVideo extends JFrame implements ActionListener {
         framesLabel.setIcon(newImc);
     }
 
-    public static void main(String[] args) {
-        Thread videoTh = new Thread(() -> {
-            new PlayVideo(args[0]);
-        });
-
-        Thread soundTh = new Thread(() -> {
-            while (!isVideoReady);
-            PlayWaveFile.play(args[1]);
-        });
-
-        videoTh.start();
-        soundTh.start();
-    }
-
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == playButton) {
+            System.out.println("play button clicked");
+            isVideoPlaying = true;
+        } else if (e.getSource() == pauseButton) {
+            System.out.println("pause button clicked");
+            isVideoPlaying = false;
+        } else if (e.getSource() == stopButton) {
+            System.out.println("stop button clicked");
+            isVideoPlaying = false;
+            frameIndex = 0;
+        }
+    }
 
+    public static void main(String[] args) {
+        new PlayVideo(args[0], args[1]);
     }
 }
