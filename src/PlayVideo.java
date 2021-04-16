@@ -1,11 +1,18 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class PlayVideo extends JFrame implements ActionListener {
     private final int FRAMES_PER_SECOND = 30;
-    private final int NUM_FRAMES = 16200;
+    // 3 minutes frames only
+    private final int NUM_FRAMES = 5400;
     private final int FRAMES_HEIGHT = 480;
     private final int FRAMES_WIDTH = 640;
 
@@ -15,7 +22,7 @@ public class PlayVideo extends JFrame implements ActionListener {
     private final Button stopButton = new Button("stop");
 
     private int frameIndex = 0;
-    private final String[] frames = new String[NUM_FRAMES];
+    private final List<BufferedImage> frames = new ArrayList<>();
     private PlaySound sound;
 
     private static volatile boolean isVideoPlaying = false;
@@ -28,9 +35,9 @@ public class PlayVideo extends JFrame implements ActionListener {
             while (frameIndex < NUM_FRAMES) {
                 try {
                     if (isVideoPlaying) {
-                        Thread.sleep(1000 / FRAMES_PER_SECOND);
                         loadFrame(frameIndex);
                         frameIndex++;
+                        Thread.sleep(1000 / FRAMES_PER_SECOND);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -58,7 +65,7 @@ public class PlayVideo extends JFrame implements ActionListener {
         framesLabel = new JLabel();
         framesLabel.setBounds(0, 0, FRAMES_WIDTH, FRAMES_HEIGHT);
 
-        loadFrame(0);
+        loadFrame(frameIndex);
 
         add(framesLabel);
         add(playButton);
@@ -79,17 +86,17 @@ public class PlayVideo extends JFrame implements ActionListener {
     }
 
     private void initFrames(String workDir) {
-        for (int i = 0; i < frames.length; i++) {
-            frames[i] = workDir + "frame" + i + ".jpg";
+        for (int i = 0; i < NUM_FRAMES; i++) {
+            try {
+                frames.add(ImageIO.read(new File(workDir + "frame" + i + ".jpg")));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void loadFrame(int i) {
-        ImageIcon icon = new ImageIcon(frames[i]);
-        Image img = icon.getImage();
-        Image newImg = img.getScaledInstance(FRAMES_WIDTH, FRAMES_HEIGHT, Image.SCALE_SMOOTH);
-        ImageIcon newImc = new ImageIcon(newImg);
-        framesLabel.setIcon(newImc);
+        framesLabel.setIcon(new ImageIcon(frames.get(i)));
     }
 
     @Override
