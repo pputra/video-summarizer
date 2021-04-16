@@ -75,4 +75,8 @@ public class PlaySound {
     	clip.stop();
 		clip.setFramePosition(0);
 	}
+
+	public long getCurrTimeMillisecond() {
+		return (long) (clip.getMicrosecondPosition() / 1000.0);
+	}
 }

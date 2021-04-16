@@ -36,7 +36,7 @@ public class PlayVideo extends JFrame implements ActionListener {
                 try {
                     if (isVideoPlaying) {
                         loadFrame(frameIndex);
-                        frameIndex++;
+                        frameIndex = (int) (sound.getCurrTimeMillisecond() * FRAMES_PER_SECOND / 1000);
                         Thread.sleep(1000 / FRAMES_PER_SECOND);
                     }
                 } catch (InterruptedException e) {
