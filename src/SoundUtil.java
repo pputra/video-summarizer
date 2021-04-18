@@ -3,6 +3,9 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import java.io.File;
+import java.io.SequenceInputStream;
+import java.util.Collections;
+import java.util.List;
 
 public class SoundUtil {
     public static AudioInputStream trim(String sourceFileName, int startSecond, int secondsToCopy) {
@@ -23,5 +26,21 @@ public class SoundUtil {
         }
 
         return shortenedStream;
+    }
+
+    public static AudioInputStream combine(List<AudioInputStream> audioInputStreamList) {
+        long totalLen = 0;
+
+        for (AudioInputStream audioInputStream : audioInputStreamList) {
+            totalLen += audioInputStream.getFrameLength();
+        }
+
+        if (totalLen <= 0) {
+            return null;
+        }
+
+        return new AudioInputStream(
+                new SequenceInputStream(Collections.enumeration(audioInputStreamList)),
+                    audioInputStreamList.get(0).getFormat(), totalLen);
     }
 }
