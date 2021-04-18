@@ -1,7 +1,6 @@
 import java.io.*;
 
 import javax.sound.sampled.*;
-import javax.sound.sampled.DataLine.Info;
 
 /**
  * 
@@ -37,19 +36,6 @@ public class PlaySound {
 		} catch (UnsupportedAudioFileException e1) {
 			e1.printStackTrace();
 		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-
-		// Obtain the information about the AudioInputStream
-		AudioFormat audioFormat = audioInputStream.getFormat();
-		Info info = new Info(SourceDataLine.class, audioFormat);
-
-		// opens the audio channel
-		SourceDataLine dataLine = null;
-		try {
-			dataLine = (SourceDataLine) AudioSystem.getLine(info);
-			dataLine.open(audioFormat, this.EXTERNAL_BUFFER_SIZE);
-		} catch (LineUnavailableException e1) {
 			e1.printStackTrace();
 		}
 

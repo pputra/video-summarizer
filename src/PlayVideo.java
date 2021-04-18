@@ -11,8 +11,8 @@ import javax.swing.*;
 
 public class PlayVideo extends JFrame implements ActionListener {
     private final int FRAMES_PER_SECOND = 30;
-    // 3 minutes frames only
-    private final int NUM_FRAMES = 5400;
+    // 90s frames only
+    private final int NUM_FRAMES = 2700;
     private final int FRAMES_HEIGHT = 480;
     private final int FRAMES_WIDTH = 640;
 
