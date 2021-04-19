@@ -47,6 +47,15 @@ public class PlaySound {
 		}
     }
 
+	public PlaySound(AudioInputStream audioInputStream) {
+		try {
+			clip = AudioSystem.getClip();
+			clip.open(audioInputStream);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
     public void play() {
 		clip.start();
     }

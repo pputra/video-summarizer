@@ -2,52 +2,56 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
 import javax.swing.*;
 
 public class PlayVideo extends JFrame implements ActionListener {
-    private final int FRAMES_PER_SECOND = 30;
-    // 90s frames only
-    private final int NUM_FRAMES = 2700;
-    private final int FRAMES_HEIGHT = 480;
-    private final int FRAMES_WIDTH = 640;
-
     private JLabel framesLabel;
     private final Button playButton = new Button("play");
     private final Button pauseButton = new Button("pause");
     private final Button stopButton = new Button("stop");
 
     private int frameIndex = 0;
-    private final List<BufferedImage> frames = new ArrayList<>();
+    private final List<BufferedImage> frames;
     private PlaySound sound;
 
     private static volatile boolean isVideoPlaying = false;
 
-    public PlayVideo(String framesWorkDir, String soundWorkDir) {
-        super("Video Summarizer");
-        initVideoPlayer(framesWorkDir);
+    public PlayVideo(List<BufferedImage> frames, AudioInputStream audioInputStream) {
+        this.frames = frames;
 
-        Thread videoTh = new Thread(() -> {
-            while (frameIndex < NUM_FRAMES) {
+        initVideoPlayer();
+
+        Thread videoTh = createVideoThread();
+
+        Thread soundTh = createSoundThread(audioInputStream);
+
+        videoTh.start();
+
+        soundTh.start();
+    }
+
+    private Thread createVideoThread() {
+        return new Thread(() -> {
+            while (frameIndex < frames.size()) {
                 try {
                     if (isVideoPlaying) {
                         loadFrame(frameIndex);
-                        frameIndex = (int) (sound.getCurrTimeMillisecond() * FRAMES_PER_SECOND / 1000);
-                        Thread.sleep(1000 / FRAMES_PER_SECOND);
+                        frameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
+                        Thread.sleep(1000 / VideoConfig.FRAMES_PER_SECOND);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         });
+    }
 
-        Thread soundTh = new Thread(() -> {
-            sound = new PlaySound(soundWorkDir);
-            while (frameIndex < NUM_FRAMES) {
+    private Thread createSoundThread(AudioInputStream audioInputStream) {
+        return new Thread(() -> {
+            sound = new PlaySound(audioInputStream);
+            while (frameIndex < frames.size()) {
                 if (isVideoPlaying) {
                     sound.play();
                 } else {
@@ -55,15 +59,11 @@ public class PlayVideo extends JFrame implements ActionListener {
                 }
             }
         });
-
-        videoTh.start();
-        soundTh.start();
     }
 
-    private void initVideoPlayer(String workDir) {
-        initFrames(workDir);
+    private void initVideoPlayer() {
         framesLabel = new JLabel();
-        framesLabel.setBounds(0, 0, FRAMES_WIDTH, FRAMES_HEIGHT);
+        framesLabel.setBounds(0, 0, VideoConfig.FRAMES_WIDTH, VideoConfig.FRAMES_HEIGHT);
 
         loadFrame(frameIndex);
 
@@ -85,16 +85,6 @@ public class PlayVideo extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-    private void initFrames(String workDir) {
-        for (int i = 0; i < NUM_FRAMES; i++) {
-            try {
-                frames.add(ImageIO.read(new File(workDir + "frame" + i + ".jpg")));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     private void loadFrame(int i) {
         framesLabel.setIcon(new ImageIcon(frames.get(i)));
     }
@@ -113,9 +103,5 @@ public class PlayVideo extends JFrame implements ActionListener {
             frameIndex = 0;
             sound.stop();
         }
-    }
-
-    public static void main(String[] args) {
-        new PlayVideo(args[0], args[1]);
     }
 }
