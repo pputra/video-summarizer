@@ -1,5 +1,6 @@
 project_dataset
 wavs
+output.txt
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
