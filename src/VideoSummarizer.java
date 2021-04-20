@@ -1,10 +1,9 @@
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class VideoSummarizer {
@@ -12,12 +11,12 @@ public class VideoSummarizer {
     private AudioInputStream originalAudioStream;
     private final List<BufferedImage> summarizedFrames = new ArrayList<>();
     private AudioInputStream summarizedAudioInputStream;
-    private final List<Integer> sceneBoundaries = new ArrayList<>();
+    private final List<Scene> scenes = new ArrayList<>();
 
     // TODO: READ RGB FRAMES INSTEAD THEN PERFORM ANALYSIS
     // TODO: ANALYZE AUDIO FREQUENCY
     public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) {
-//        getSceneBoundaries(pathToFrameRgb);
+        analyzeScenes(pathToFrameRgb);
 
         // 2700 for testing purpose.
         for (int i = 0; i < 2700; i++) {
@@ -48,8 +47,11 @@ public class VideoSummarizer {
         originalAudioStream = SoundUtil.trim(pathToAudio, 0, 90);
     }
 
-    public void getSceneBoundaries(String path) {
+    public void analyzeScenes(String path) {
         System.out.println("calculating scene boundaries: ");
+
+        int sceneAvgDiff = 0;
+        int startFrame = 0;
 
         for (int i = 0; i < VideoConfig.NUM_FRAMES - 1; i++) {
             try {
@@ -98,8 +100,15 @@ public class VideoSummarizer {
                 int avgDiff = (sumDiffR + sumDiffG + sumDiffB) / 3;
 
                 if (avgDiff >= VideoSummarizerAnalysisParams.SCENE_BOUNDARIES_RGB_DIFF_AVG_THRESHOLD) {
-                    System.out.println("frame boundary: " + i + " sum rgb diff avg: " + avgDiff);
-                    sceneBoundaries.add(i);
+                    int numFramesInOneScene = i - startFrame;
+                    double avgRgbDiffInOneScene = (double) Math.round((double) sceneAvgDiff / numFramesInOneScene);
+                    Scene scene = new Scene(startFrame, i, avgRgbDiffInOneScene);
+                    scenes.add(scene);
+                    startFrame = i + 1;
+                    sceneAvgDiff = 0;
+                    System.out.println(scene);
+                } else {
+                    sceneAvgDiff += avgDiff;
                 }
 
                 raf.close();
@@ -108,6 +117,10 @@ public class VideoSummarizer {
                 e.printStackTrace();
             }
         }
+
+        System.out.println("sorting scene based on motion level...");
+        Collections.sort(scenes);
+        scenes.forEach((System.out::println));
     }
 
     public List<BufferedImage> getOriginalFrames() {
