@@ -74,4 +74,12 @@ public class PlaySound {
 	public long getCurrTimeMillisecond() {
 		return (long) (clip.getMicrosecondPosition() / 1000.0);
 	}
+
+	public long getTotalDurationInSecond() {
+		return (long) (clip.getMicrosecondLength() / 1000000.0);
+	}
+
+	public void setCurrTimeSecond(int sec) {
+    	clip.setMicrosecondPosition(sec * 1000000);
+	}
 }

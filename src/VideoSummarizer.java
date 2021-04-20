@@ -17,7 +17,7 @@ public class VideoSummarizer {
     // TODO: READ RGB FRAMES INSTEAD THEN PERFORM ANALYSIS
     // TODO: ANALYZE AUDIO FREQUENCY
     public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) {
-        getSceneBoundaries(pathToFrameRgb);
+//        getSceneBoundaries(pathToFrameRgb);
 
         // 2700 for testing purpose.
         for (int i = 0; i < 2700; i++) {
@@ -28,21 +28,24 @@ public class VideoSummarizer {
             }
         }
 
-        InputStream waveStream = null;
+//        InputStream waveStream = null;
+//
+//        try {
+//            waveStream = new FileInputStream(pathToAudio);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//
+//        try {
+//            InputStream bufferedIn = new BufferedInputStream(waveStream);
+//            originalAudioStream = AudioSystem.getAudioInputStream(bufferedIn);
+//
+//        } catch (UnsupportedAudioFileException | IOException e1) {
+//            e1.printStackTrace();
+//        }
 
-        try {
-            waveStream = new FileInputStream(pathToAudio);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            InputStream bufferedIn = new BufferedInputStream(waveStream);
-            originalAudioStream = AudioSystem.getAudioInputStream(bufferedIn);
-
-        } catch (UnsupportedAudioFileException | IOException e1) {
-            e1.printStackTrace();
-        }
+        // 90 s audio for testing purposes
+        originalAudioStream = SoundUtil.trim(pathToAudio, 0, 90);
     }
 
     public void getSceneBoundaries(String path) {

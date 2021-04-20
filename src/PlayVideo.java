@@ -5,21 +5,26 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.sound.sampled.AudioInputStream;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class PlayVideo extends JFrame implements ActionListener {
+public class PlayVideo extends JFrame implements ActionListener, ChangeListener {
     private JLabel framesLabel;
     private final Button playButton = new Button("play");
     private final Button pauseButton = new Button("pause");
     private final Button stopButton = new Button("stop");
+    private JSlider slider;
 
     private int frameIndex = 0;
     private final List<BufferedImage> frames;
-    private PlaySound sound;
+    private volatile PlaySound sound;
 
     private static volatile boolean isVideoPlaying = false;
 
     public PlayVideo(List<BufferedImage> frames, AudioInputStream audioInputStream) {
         this.frames = frames;
+
+        sound = new PlaySound(audioInputStream);
 
         initVideoPlayer();
 
@@ -39,6 +44,7 @@ public class PlayVideo extends JFrame implements ActionListener {
                     if (isVideoPlaying) {
                         loadFrame(frameIndex);
                         frameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
+                        slider.setValue((int) Math.round((sound.getCurrTimeMillisecond() / 1000.0)));
                         Thread.sleep(1000 / VideoConfig.FRAMES_PER_SECOND);
                     }
                 } catch (InterruptedException e) {
@@ -50,7 +56,6 @@ public class PlayVideo extends JFrame implements ActionListener {
 
     private Thread createSoundThread(AudioInputStream audioInputStream) {
         return new Thread(() -> {
-            sound = new PlaySound(audioInputStream);
             while (frameIndex < frames.size()) {
                 if (isVideoPlaying) {
                     sound.play();
@@ -72,6 +77,11 @@ public class PlayVideo extends JFrame implements ActionListener {
         add(pauseButton);
         add(stopButton);
 
+        slider = new JSlider(JSlider.HORIZONTAL, 0, (int) sound.getTotalDurationInSecond(), 1);
+        slider.setBackground(Color.WHITE);
+        slider.setOpaque(true);
+        add(slider);
+
         setLayout(new FlowLayout());
         setSize(1280, 720);
         getContentPane().setBackground(Color.decode("#000000"));
@@ -81,6 +91,7 @@ public class PlayVideo extends JFrame implements ActionListener {
         playButton.addActionListener(this);
         pauseButton.addActionListener(this);
         stopButton.addActionListener(this);
+        slider.addChangeListener(this);
 
         setVisible(true);
     }
@@ -102,6 +113,19 @@ public class PlayVideo extends JFrame implements ActionListener {
             isVideoPlaying = false;
             frameIndex = 0;
             sound.stop();
+            slider.setValue(0);
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        int currSoundTimeInSecond = (int) sound.getCurrTimeMillisecond() / 1000;
+        int currSliderTimeInSecond = ((JSlider) e.getSource()).getValue();
+
+        boolean userDidModifyTheSlider = Math.abs(currSoundTimeInSecond - currSliderTimeInSecond) > 1;
+
+        if (userDidModifyTheSlider) {
+            sound.setCurrTimeSecond(currSliderTimeInSecond);
         }
     }
 }
