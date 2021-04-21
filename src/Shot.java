@@ -4,10 +4,9 @@ public class Shot implements Comparable {
     private double motionLevel;
     private double audioLevel;
 
-    public Shot(int startFrame, int endFrame, double motionLevel) {
+    public Shot(int startFrame, int endFrame) {
         this.startFrame = startFrame;
         this.endFrame = endFrame;
-        this.motionLevel = motionLevel;
     }
 
     public int getStartFrame() {
@@ -40,6 +39,10 @@ public class Shot implements Comparable {
 
     public void setEndFrame(int endFrame) {
         this.endFrame = endFrame;
+    }
+
+    public void setMotionLevel(double motionLevel) {
+        this.motionLevel = motionLevel;
     }
 
     @Override
