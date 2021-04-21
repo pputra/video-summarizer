@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class SoundUtil {
-    public static AudioInputStream trim(String sourceFileName, int startSecond, int secondsToCopy) {
+    public static AudioInputStream trim(String sourceFileName, long startFemtoSecond, long femtoSecondsToCopy) {
         AudioInputStream inputStream;
         AudioInputStream shortenedStream = null;
 
@@ -18,8 +18,8 @@ public class SoundUtil {
             AudioFormat format = fileFormat.getFormat();
             inputStream = AudioSystem.getAudioInputStream(file);
             int bytesPerSecond = format.getFrameSize() * (int) format.getFrameRate();
-            inputStream.skip(startSecond * bytesPerSecond);
-            long framesOfAudioToCopy = secondsToCopy * (int) format.getFrameRate();
+            inputStream.skip(Math.round(startFemtoSecond / 1000000000000000.0) * bytesPerSecond);
+            long framesOfAudioToCopy = Math.round(femtoSecondsToCopy / 1000000000000000.0) * (long) format.getFrameRate();
             shortenedStream = new AudioInputStream(inputStream, format, framesOfAudioToCopy);
         } catch (Exception e) {
             e.printStackTrace();

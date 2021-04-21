@@ -17,15 +17,16 @@ public class VideoSummarizer {
     // TODO: ANALYZE AUDIO FREQUENCY
     public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) {
         analyzeScenes(pathToFrameRgb);
-
+        System.out.println("generating video summaries...");
+        generatedSummarizedVideo(pathToFrame, pathToAudio);
         // 2700 for testing purpose.
-        for (int i = 0; i < 2700; i++) {
-            try {
-                originalFrames.add(ImageIO.read(new File(pathToFrame + "frame" + i + ".jpg")));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+//        for (int i = 0; i < 2700; i++) {
+//            try {
+//                originalFrames.add(ImageIO.read(new File(pathToFrame + "frame" + i + ".jpg")));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
 
 //        InputStream waveStream = null;
 //
@@ -44,7 +45,7 @@ public class VideoSummarizer {
 //        }
 
         // 90 s audio for testing purposes
-        originalAudioStream = SoundUtil.trim(pathToAudio, 0, 90);
+//        originalAudioStream = SoundUtil.trim(pathToAudio, 0, 90);
     }
 
     public void analyzeScenes(String path) {
@@ -123,6 +124,31 @@ public class VideoSummarizer {
         scenes.forEach((System.out::println));
     }
 
+    public void generatedSummarizedVideo(String pathToFrame, String pathToAudio) {
+        int currSummarizedFrames = 0;
+        List<AudioInputStream> summarizedAudioStreams = new ArrayList<>();
+
+        for (Scene scene : scenes) {
+            if (currSummarizedFrames >= VideoConfig.NUM_SUMMARIZED_FRAMES) {
+                this.summarizedAudioInputStream = SoundUtil.combine(summarizedAudioStreams);
+                return;
+            }
+
+            currSummarizedFrames += scene.getTotalNumFrames();
+
+            for (int i = scene.getStartFrame(); i <= scene.getEndFrame(); i++) {
+                try {
+                    summarizedFrames.add(ImageIO.read(new File(pathToFrame + "frame" + i + ".jpg")));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            AudioInputStream audioInputStream = SoundUtil.trim(pathToAudio, scene.getStartTimeInFemtoSecond(), scene.getSceneDurationInFemtoSecond());
+            summarizedAudioStreams.add(audioInputStream);
+        }
+    }
+
     public List<BufferedImage> getOriginalFrames() {
         return originalFrames;
     }
@@ -131,9 +157,18 @@ public class VideoSummarizer {
         return originalAudioStream;
     }
 
+    public List<BufferedImage> getSummarizedFrames() {
+        return summarizedFrames;
+    }
+
+    public AudioInputStream getSummarizedAudioInputStream() {
+        return summarizedAudioInputStream;
+    }
+
     public static void main(String[] args) {
         VideoSummarizer videoSummarizer = new VideoSummarizer(args[0], args[1], args[2]);
-        new PlayVideo(videoSummarizer.getOriginalFrames(),
-                videoSummarizer.getOriginalAudioStream());
+        System.out.println("starting video player");
+        new PlayVideo(videoSummarizer.getSummarizedFrames(),
+                videoSummarizer.getSummarizedAudioInputStream());
     }
 }
