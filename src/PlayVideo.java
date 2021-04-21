@@ -17,7 +17,10 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
 
     private int frameIndex = 0;
     private final List<BufferedImage> frames;
-    private volatile PlaySound sound;
+    private final PlaySound sound;
+
+    private Thread videoTh;
+    private Thread soundTh;
 
     private static volatile boolean isVideoPlaying = false;
 
@@ -28,9 +31,9 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
 
         initVideoPlayer();
 
-        Thread videoTh = createVideoThread();
+        videoTh = createVideoThread();
 
-        Thread soundTh = createSoundThread(audioInputStream);
+        soundTh = createSoundThread();
 
         videoTh.start();
 
@@ -54,7 +57,7 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
         });
     }
 
-    private Thread createSoundThread(AudioInputStream audioInputStream) {
+    private Thread createSoundThread() {
         return new Thread(() -> {
             while (frameIndex < frames.size()) {
                 if (isVideoPlaying) {
@@ -103,6 +106,18 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == playButton) {
+            boolean userDidReplay = frameIndex >= frames.size();
+
+            if (userDidReplay) {
+                frameIndex = 0;
+                slider.setValue(0);
+                videoTh = createVideoThread();
+                sound.stop();
+                soundTh = createSoundThread();
+                videoTh.start();
+                soundTh.start();
+            }
+
             System.out.println("play button clicked");
             isVideoPlaying = true;
         } else if (e.getSource() == pauseButton) {
