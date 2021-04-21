@@ -11,12 +11,12 @@ public class VideoSummarizer {
     private AudioInputStream originalAudioStream;
     private final List<BufferedImage> summarizedFrames = new ArrayList<>();
     private AudioInputStream summarizedAudioInputStream;
-    private final List<Scene> scenes = new ArrayList<>();
+    private final List<Shot> shots = new ArrayList<>();
 
     // TODO: READ RGB FRAMES INSTEAD THEN PERFORM ANALYSIS
     // TODO: ANALYZE AUDIO FREQUENCY
     public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) {
-        analyzeScenes(pathToFrameRgb);
+        analyzeShots(pathToFrameRgb);
         System.out.println("generating video summaries...");
         generatedSummarizedVideo(pathToFrame, pathToAudio);
         // 2700 for testing purpose.
@@ -48,10 +48,10 @@ public class VideoSummarizer {
 //        originalAudioStream = SoundUtil.trim(pathToAudio, 0, 90);
     }
 
-    public void analyzeScenes(String path) {
-        System.out.println("calculating scene boundaries: ");
+    public void analyzeShots(String path) {
+        System.out.println("calculating shot boundaries: ");
 
-        int sceneAvgDiff = 0;
+        int shotAvgDiff = 0;
         int startFrame = 0;
 
         for (int i = 0; i < VideoConfig.NUM_FRAMES - 1; i++) {
@@ -100,16 +100,16 @@ public class VideoSummarizer {
 
                 int avgDiff = (sumDiffR + sumDiffG + sumDiffB) / 3;
 
-                if (avgDiff >= VideoSummarizerAnalysisParams.SCENE_BOUNDARIES_RGB_DIFF_AVG_THRESHOLD) {
-                    int numFramesInOneScene = i - startFrame;
-                    double avgRgbDiffInOneScene = (double) Math.round((double) sceneAvgDiff / numFramesInOneScene);
-                    Scene scene = new Scene(startFrame, i, avgRgbDiffInOneScene);
-                    scenes.add(scene);
+                if (avgDiff >= VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_RGB_DIFF_AVG_THRESHOLD) {
+                    int numFramesInOneShot = i - startFrame;
+                    double avgRgbDiffInOneShot = (double) Math.round((double) shotAvgDiff / numFramesInOneShot);
+                    Shot shot = new Shot(startFrame, i, avgRgbDiffInOneShot);
+                    shots.add(shot);
                     startFrame = i + 1;
-                    sceneAvgDiff = 0;
-                    System.out.println(scene);
+                    shotAvgDiff = 0;
+                    System.out.println(shot);
                 } else {
-                    sceneAvgDiff += avgDiff;
+                    shotAvgDiff += avgDiff;
                 }
 
                 raf.close();
@@ -119,24 +119,24 @@ public class VideoSummarizer {
             }
         }
 
-        System.out.println("sorting scene based on motion level...");
-        Collections.sort(scenes);
-        scenes.forEach((System.out::println));
+        System.out.println("sorting shots based on motion level...");
+        Collections.sort(shots);
+        shots.forEach((System.out::println));
     }
 
     public void generatedSummarizedVideo(String pathToFrame, String pathToAudio) {
         int currSummarizedFrames = 0;
         List<AudioInputStream> summarizedAudioStreams = new ArrayList<>();
 
-        for (Scene scene : scenes) {
+        for (Shot shot : shots) {
             if (currSummarizedFrames >= VideoConfig.NUM_SUMMARIZED_FRAMES) {
                 this.summarizedAudioInputStream = SoundUtil.combine(summarizedAudioStreams);
                 return;
             }
 
-            currSummarizedFrames += scene.getTotalNumFrames();
+            currSummarizedFrames += shot.getTotalNumFrames();
 
-            for (int i = scene.getStartFrame(); i <= scene.getEndFrame(); i++) {
+            for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
                 try {
                     summarizedFrames.add(ImageIO.read(new File(pathToFrame + "frame" + i + ".jpg")));
                 } catch (IOException e) {
@@ -144,7 +144,7 @@ public class VideoSummarizer {
                 }
             }
 
-            AudioInputStream audioInputStream = SoundUtil.trim(pathToAudio, scene.getStartTimeInFemtoSecond(), scene.getSceneDurationInFemtoSecond());
+            AudioInputStream audioInputStream = SoundUtil.trim(pathToAudio, shot.getStartTimeInFemtoSecond(), shot.getShotDurationInFemtoSecond());
             summarizedAudioStreams.add(audioInputStream);
         }
     }

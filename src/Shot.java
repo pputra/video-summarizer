@@ -1,10 +1,10 @@
-public class Scene implements Comparable {
+public class Shot implements Comparable {
     private int startFrame;
     private int endFrame;
     private double motionLevel;
     private double audioLevel;
 
-    public Scene(int startFrame, int endFrame, double motionLevel) {
+    public Shot(int startFrame, int endFrame, double motionLevel) {
         this.startFrame = startFrame;
         this.endFrame = endFrame;
         this.motionLevel = motionLevel;
@@ -34,7 +34,7 @@ public class Scene implements Comparable {
         return Math.round(startFrame / (float) VideoConfig.FRAMES_PER_SECOND * 1000000000000000.0);
     }
 
-    public long getSceneDurationInFemtoSecond() {
+    public long getShotDurationInFemtoSecond() {
         return Math.round(getTotalNumFrames() / (float) VideoConfig.FRAMES_PER_SECOND * 1000000000000000.0);
     }
 
@@ -44,7 +44,7 @@ public class Scene implements Comparable {
 
     @Override
     public String toString() {
-        return "Scene{" +
+        return "Shot{" +
                 "startFrame=" + startFrame +
                 ", endFrame=" + endFrame +
                 ", motionLevel=" + motionLevel +
@@ -54,6 +54,6 @@ public class Scene implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        return (int) Math.round(((Scene) o).motionLevel - this.motionLevel);
+        return (int) Math.round(((Shot) o).motionLevel - this.motionLevel);
     }
 }
