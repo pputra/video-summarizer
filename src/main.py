@@ -15,8 +15,19 @@
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
+# import wave, struct
+
+# wavefile = wave.open('D:\\amusic_and_videos\\proj_dataset\\database\\audio\\concert.wav', 'r')
+# amplitur=wavefile.readframes(800)
+# print(amplitur)
+
+
 import wave, struct
 
 wavefile = wave.open('D:\\amusic_and_videos\\proj_dataset\\database\\audio\\concert.wav', 'r')
-amplitur=wavefile.readframes(800)
-print(amplitur)
+# amplitur=wavefile.readframes(800)
+# print(amplitur)
+
+for i in range(wavefile.getnframes()):
+    frame = wavefile.readframes(i)
+    print (frame)
