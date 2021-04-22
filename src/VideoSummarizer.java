@@ -66,62 +66,38 @@ public class VideoSummarizer {
         int startFrame = 0;
 
         for (int i = 0; i < VideoConfig.NUM_FRAMES - 1; i++) {
-            try {
-                final int TOTAL_NUM_PIXEL = VideoConfig.FRAMES_HEIGHT * VideoConfig.FRAMES_WIDTH;
-                int frameLength = TOTAL_NUM_PIXEL*3;
+            int sumDiffR = 0;
+            int sumDiffG = 0;
+            int sumDiffB = 0;
 
-                File file = new File(pathToFrameRgb + "frame" + i + ".rgb");
-                File nextFile = new File(pathToFrameRgb + "frame" + (i + 1) + ".rgb");
+            RGB[][] currFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb",
+                    VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
+            RGB[][] nextFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + (i + 1) + ".rgb",
+                    VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
 
-                RandomAccessFile raf = new RandomAccessFile(file, "r");
-                RandomAccessFile nextRaf = new RandomAccessFile(nextFile, "r");
+            for(int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
+                for(int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
+                    byte currR = currFrameRgb[y][x].getR();
+                    byte currG = currFrameRgb[y][x].getG();
+                    byte currB = currFrameRgb[y][x].getB();
 
-                raf.seek(0);
-                nextRaf.seek(0);
+                    byte nextR = nextFrameRgb[y][x].getR();
+                    byte nextG = nextFrameRgb[y][x].getG();
+                    byte nextB = nextFrameRgb[y][x].getB();
 
-                byte[] bytes = new byte[(int) (long) frameLength];
-                byte[] nextBytes = new byte[(int) (long) frameLength];
-
-                raf.read(bytes);
-                nextRaf.read(nextBytes);
-
-                int ind = 0;
-
-                int sumDiffR = 0;
-                int sumDiffG = 0;
-                int sumDiffB = 0;
-
-                for(int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
-                    for(int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
-                        byte currR = bytes[ind];
-                        byte currG = bytes[ind+TOTAL_NUM_PIXEL];
-                        byte currB = bytes[ind+TOTAL_NUM_PIXEL*2];
-
-                        byte nextR = nextBytes[ind];
-                        byte nextG = nextBytes[ind+TOTAL_NUM_PIXEL];
-                        byte nextB = nextBytes[ind+TOTAL_NUM_PIXEL*2];
-
-                        sumDiffR += Math.abs(currR - nextR);
-                        sumDiffG += Math.abs(currG - nextG);
-                        sumDiffB += Math.abs(currB - nextB);
-
-                        ind++;
-                    }
+                    sumDiffR += Math.abs(currR - nextR);
+                    sumDiffG += Math.abs(currG - nextG);
+                    sumDiffB += Math.abs(currB - nextB);
                 }
+            }
 
-                int avgDiff = (sumDiffR + sumDiffG + sumDiffB) / 3;
+            int avgDiff = (sumDiffR + sumDiffG + sumDiffB) / 3;
 
-                if (avgDiff >= VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_RGB_DIFF_AVG_THRESHOLD) {
-                    Shot shot = new Shot(startFrame, i);
-                    shots.add(shot);
-                    startFrame = i + 1;
-                    System.out.println(shot);
-                }
-
-                raf.close();
-                nextRaf.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (avgDiff >= VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_RGB_DIFF_AVG_THRESHOLD) {
+                Shot shot = new Shot(startFrame, i);
+                shots.add(shot);
+                startFrame = i + 1;
+                System.out.println(shot);
             }
         }
     }
@@ -131,56 +107,32 @@ public class VideoSummarizer {
             double sumAvgRgbDiff = 0;
 
             for (int i = shot.getStartFrame(); i < shot.getEndFrame(); i++) {
-                try {
-                    final int TOTAL_NUM_PIXEL = VideoConfig.FRAMES_HEIGHT * VideoConfig.FRAMES_WIDTH;
-                    int frameLength = TOTAL_NUM_PIXEL*3;
+                RGB[][] currFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb",
+                        VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
+                RGB[][] nextFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + (i + 1) + ".rgb",
+                        VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
 
-                    File file = new File(pathToFrameRgb + "frame" + i + ".rgb");
-                    File nextFile = new File(pathToFrameRgb + "frame" + (i + 1) + ".rgb");
+                int sumDiffR = 0;
+                int sumDiffG = 0;
+                int sumDiffB = 0;
 
-                    RandomAccessFile raf = new RandomAccessFile(file, "r");
-                    RandomAccessFile nextRaf = new RandomAccessFile(nextFile, "r");
+                for(int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
+                    for(int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
+                        byte currR = currFrameRgb[y][x].getR();
+                        byte currG = currFrameRgb[y][x].getG();
+                        byte currB = currFrameRgb[y][x].getB();
 
-                    raf.seek(0);
-                    nextRaf.seek(0);
+                        byte nextR = nextFrameRgb[y][x].getR();
+                        byte nextG = nextFrameRgb[y][x].getG();
+                        byte nextB = nextFrameRgb[y][x].getB();
 
-                    byte[] bytes = new byte[(int) (long) frameLength];
-                    byte[] nextBytes = new byte[(int) (long) frameLength];
-
-                    raf.read(bytes);
-                    nextRaf.read(nextBytes);
-
-                    int ind = 0;
-
-                    int sumDiffR = 0;
-                    int sumDiffG = 0;
-                    int sumDiffB = 0;
-
-                    for(int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
-                        for(int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
-                            byte currR = bytes[ind];
-                            byte currG = bytes[ind+TOTAL_NUM_PIXEL];
-                            byte currB = bytes[ind+TOTAL_NUM_PIXEL*2];
-
-                            byte nextR = nextBytes[ind];
-                            byte nextG = nextBytes[ind+TOTAL_NUM_PIXEL];
-                            byte nextB = nextBytes[ind+TOTAL_NUM_PIXEL*2];
-
-                            sumDiffR += Math.abs(currR - nextR);
-                            sumDiffG += Math.abs(currG - nextG);
-                            sumDiffB += Math.abs(currB - nextB);
-
-                            ind++;
-                        }
+                        sumDiffR += Math.abs(currR - nextR);
+                        sumDiffG += Math.abs(currG - nextG);
+                        sumDiffB += Math.abs(currB - nextB);
                     }
-
-                    sumAvgRgbDiff += (sumDiffR + sumDiffG + sumDiffB) / 3.0;
-                    raf.close();
-                    nextRaf.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
 
+                sumAvgRgbDiff += (sumDiffR + sumDiffG + sumDiffB) / 3.0;
             }
 
             shot.setMotionLevel(Math.round(sumAvgRgbDiff / (double) shot.getTotalNumFrames()));
