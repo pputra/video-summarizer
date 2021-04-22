@@ -1,7 +1,5 @@
-import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
 import java.awt.image.BufferedImage;
-import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -152,11 +150,17 @@ public class VideoSummarizer {
             currSummarizedFrames += shot.getTotalNumFrames();
 
             for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
-                try {
-                    summarizedFrames.add(ImageIO.read(new File(pathToFrame + "frame" + i + ".jpg")));
-                } catch (IOException e) {
-                    e.printStackTrace();
+                RGB[][] rgbChannels = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb", VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
+                BufferedImage bufferedImage = new BufferedImage(VideoConfig.FRAMES_WIDTH, VideoConfig.FRAMES_HEIGHT, BufferedImage.TYPE_INT_RGB);
+
+                for (int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
+                    for (int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
+                        RGB rgb = rgbChannels[y][x];
+                        bufferedImage.setRGB(x, y, ImageUtil.rgbToPixel(rgb));
+                    }
                 }
+
+                summarizedFrames.add(bufferedImage);
             }
 
             AudioInputStream audioInputStream = SoundUtil.trim(pathToAudio, shot.getStartTimeInFemtoSecond(), shot.getShotDurationInFemtoSecond());

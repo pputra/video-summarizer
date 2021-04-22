@@ -37,4 +37,8 @@ public class ImageUtil {
 
         return rgbChannels;
     }
+
+    public static int rgbToPixel(RGB rgb) {
+        return 0xff000000 | ((rgb.getR() & 0xff) << 16) | ((rgb.getG() & 0xff) << 8) | (rgb.getB() & 0xff);
+    }
 }

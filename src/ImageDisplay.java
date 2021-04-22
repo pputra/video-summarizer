@@ -272,18 +272,15 @@ public class ImageDisplay {
       }
 
       // initializes the playSound Object
-      PlaySound playSound = new PlaySound(inputStream);
-
-      // plays the sound
-      try {
-         playSound.play();
-      } catch (PlayWaveException e) {
-         e.printStackTrace();
-         return;
-      }
-
-
-
+//      PlaySound playSound = new PlaySound(inputStream);
+//
+//      // plays the sound
+//      try {
+//         playSound.play();
+//      } catch (PlayWaveException e) {
+//         e.printStackTrace();
+//         return;
+//      }
    }
 
 }
