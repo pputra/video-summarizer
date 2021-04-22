@@ -1,4 +1,6 @@
-public class Shot implements Comparable {
+import java.util.List;
+
+public class Shot {
     private int startFrame;
     private int endFrame;
     private double motionLevel;
@@ -55,8 +57,21 @@ public class Shot implements Comparable {
                 '}';
     }
 
-    @Override
-    public int compareTo(Object o) {
-        return (int) Math.round(((Shot) o).motionLevel - this.motionLevel);
+    public static class Sorter {
+        public static void sortByTimeStampAsc(List<Shot> shots) {
+            shots.sort((o1, o2) -> o1.getStartFrame() - o2.getEndFrame());
+        }
+
+        public static void sortByScoreDesc(List<Shot> shots) {
+            shots.sort((o1, o2) -> {
+                int score1 = (int) Math.round(o1.motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
+                        o1.getAudioLevel() * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT);
+
+                int score2 = (int) Math.round(o2.motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
+                        o2.getAudioLevel() * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT);
+
+                return score2 - score1;
+            });
+        }
     }
 }

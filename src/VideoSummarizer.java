@@ -15,8 +15,6 @@ public class VideoSummarizer {
     private AudioInputStream summarizedAudioInputStream;
     private final List<Shot> shots = new ArrayList<>();
 
-    // TODO: READ RGB FRAMES INSTEAD THEN PERFORM ANALYSIS
-    // TODO: ANALYZE AUDIO FREQUENCY
     public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) {
         this.pathToFrame = pathToFrame;
         this.pathToAudio = pathToAudio;
@@ -26,38 +24,13 @@ public class VideoSummarizer {
         analyzeShots();
         System.out.println("calculating motion scores...");
         calculateMotionScore();
-        System.out.println("sorting shots by motion level...");
-        Collections.sort(shots);
+        //TODO: calculate audio score
+        //TODO: calculate face detection score
+        System.out.println("sorting shots by score...");
+        Shot.Sorter.sortByScoreDesc(shots);
         shots.forEach((System.out::println));
         System.out.println("generating video summaries...");
         generatedSummarizedVideo();
-        // 2700 for testing purpose.
-//        for (int i = 0; i < 2700; i++) {
-//            try {
-//                originalFrames.add(ImageIO.read(new File(pathToFrame + "frame" + i + ".jpg")));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
-//        InputStream waveStream = null;
-//
-//        try {
-//            waveStream = new FileInputStream(pathToAudio);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//
-//        try {
-//            InputStream bufferedIn = new BufferedInputStream(waveStream);
-//            originalAudioStream = AudioSystem.getAudioInputStream(bufferedIn);
-//
-//        } catch (UnsupportedAudioFileException | IOException e1) {
-//            e1.printStackTrace();
-//        }
-
-        // 90 s audio for testing purposes
-//        originalAudioStream = SoundUtil.trim(pathToAudio, 0, 90);
     }
 
     public void analyzeShots() {
@@ -140,15 +113,22 @@ public class VideoSummarizer {
     public void generatedSummarizedVideo() {
         int currSummarizedFrames = 0;
         List<AudioInputStream> summarizedAudioStreams = new ArrayList<>();
+        List<Shot> summarizedShots = new ArrayList<>();
 
         for (Shot shot : shots) {
             if (currSummarizedFrames >= VideoConfig.NUM_SUMMARIZED_FRAMES) {
-                this.summarizedAudioInputStream = SoundUtil.combine(summarizedAudioStreams);
-                return;
+                break;
             }
 
+            summarizedShots.add(shot);
             currSummarizedFrames += shot.getTotalNumFrames();
+        }
 
+        System.out.println("video duration: " + Math.round(currSummarizedFrames / (double) VideoConfig.FRAMES_PER_SECOND) + "s");
+
+        Shot.Sorter.sortByTimeStampAsc(summarizedShots);
+
+        for (Shot shot : summarizedShots) {
             for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
                 RGB[][] rgbChannels = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb", VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
                 BufferedImage bufferedImage = new BufferedImage(VideoConfig.FRAMES_WIDTH, VideoConfig.FRAMES_HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -166,6 +146,8 @@ public class VideoSummarizer {
             AudioInputStream audioInputStream = SoundUtil.trim(pathToAudio, shot.getStartTimeInFemtoSecond(), shot.getShotDurationInFemtoSecond());
             summarizedAudioStreams.add(audioInputStream);
         }
+
+        this.summarizedAudioInputStream = SoundUtil.combine(summarizedAudioStreams);
     }
 
     public List<BufferedImage> getOriginalFrames() {
