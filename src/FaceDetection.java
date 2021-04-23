@@ -21,7 +21,7 @@ public class FaceDetection {
 
             writer = new FileWriter(VideoSummarizerAnalysisParams.NUM_DETECTED_FACES_OUTPUT_FILENAME);
 
-            for (int i = 7214; i < VideoConfig.NUM_FRAMES; i++) {
+            for (int i = 0; i < VideoConfig.NUM_FRAMES; i++) {
                 Mat loadedImage = loadImage(args[0] + "frame" + i + ".jpg");
 
                 MatOfRect facesDetected = new MatOfRect();
