@@ -1,7 +1,6 @@
 import javax.sound.sampled.AudioInputStream;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class VideoSummarizer {
@@ -22,6 +21,7 @@ public class VideoSummarizer {
 
         System.out.println("calculating shot boundaries...");
         analyzeShots();
+        OutputUtil.writeShotBoundariesToFile(shots, VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
         System.out.println("calculating motion scores...");
         calculateMotionScore();
         //TODO: calculate audio score
