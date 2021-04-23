@@ -184,7 +184,7 @@ public class ImageDisplay {
       imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
       imgTwo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
       frame = new JFrame();
-      ///////
+
       GridBagLayout gLayout = new GridBagLayout();
       frame.getContentPane().setLayout(gLayout);
 

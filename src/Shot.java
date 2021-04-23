@@ -1,8 +1,10 @@
 import java.util.List;
 
 public class Shot {
-    private int startFrame;
-    private int endFrame;
+
+    private static int startFrame;
+    private static int endFrame;
+
     private double motionLevel;
     private double audioLevel;
 
@@ -11,11 +13,11 @@ public class Shot {
         this.endFrame = endFrame;
     }
 
-    public int getStartFrame() {
+    public static int getStartFrame() {
         return startFrame;
     }
 
-    public int getEndFrame() {
+    public static int getEndFrame() {
         return endFrame;
     }
 
@@ -46,6 +48,7 @@ public class Shot {
     public void setMotionLevel(double motionLevel) {
         this.motionLevel = motionLevel;
     }
+    public void setAudioLevel(double audioLevel){this.audioLevel = audioLevel;}
 
     @Override
     public String toString() {
