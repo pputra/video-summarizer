@@ -163,3 +163,4 @@ Temporary Items
 *.csv
 shot_boundaries.txt
 num_detected_faces.txt
+*.iml

@@ -1,12 +1,8 @@
 import javax.sound.sampled.AudioInputStream;
 import java.awt.image.BufferedImage;
-<<<<<<< HEAD
 import java.io.*;
-import java.util.*;
-=======
 import java.util.ArrayList;
 import java.util.List;
->>>>>>> 4223a578ab064a0236feca2a315a3605dbb32ce0
 
 public class VideoSummarizer {
     private final String pathToFrame;
@@ -30,7 +26,7 @@ public class VideoSummarizer {
         System.out.println("calculating motion scores...");
         calculateMotionScore();
         //TODO: calculate audio score
-        calculateAudioScore();
+//        calculateAudioScore();
 
         //TODO: calculate face detection score
         System.out.println("sorting shots by score...");
@@ -128,9 +124,9 @@ public class VideoSummarizer {
          * revise the txt file path before u run the program
          *
          */
-        String txtFilePath = "/xxx/Desktop/concert.txt";
+
         try{
-            FileInputStream fin = new FileInputStream(txtFilePath);
+            FileInputStream fin = new FileInputStream(VideoSummarizerAnalysisParams.AMPLITUDES_FILE_NAME);
             reader = new InputStreamReader(fin);
         }catch(FileNotFoundException e){
             e.printStackTrace();
