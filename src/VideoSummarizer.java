@@ -26,7 +26,7 @@ public class VideoSummarizer {
         System.out.println("calculating motion scores...");
         calculateMotionScore();
         //TODO: calculate audio score
-//        calculateAudioScore();
+        calculateAudioScore();
 
         //TODO: calculate face detection score
         System.out.println("sorting shots by score...");
@@ -115,14 +115,13 @@ public class VideoSummarizer {
 
 
     public void calculateAudioScore() throws IOException {
-        //read all rows from txt file
+
         InputStreamReader reader = null;
         BufferedReader buffReader = null;
 
         /**
-         *
-         * revise the txt file path before u run the program
-         *
+         * revise the amplitutde txt file name before u run the program
+         * standard name format: amplitudes.txt
          */
 
         try{
@@ -132,119 +131,82 @@ public class VideoSummarizer {
             e.printStackTrace();
         }
 
+        int samplesPerFrames = StdAudio.SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND;
+
         double leftChannel = 0;
         double rightChannel = 0;
         double avgAudioPerSample = 0;
-//        int sampleIndex = 0;
-//        Map<Integer, Double> samplePair = new HashMap<>();
-//        PriorityQueue<Map.Entry<Integer, Double>>  maxHeap = new PriorityQueue<>();  //get first n big amplitude
-//        PriorityQueue<Map.Entry<Integer, Double>>  minHeap = new PriorityQueue<>();  //get last n small amplitude
+        double avgAudioSumPerFrame = 0;
+        //double avgAudioSumPerShot = 0;
 
-        int samplesPerFrames = StdAudio.SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND;
+        int sampleIndex_PerFrame = 0;
+        int frameIndex = 0;
+        //boolean isInOneShot = true;
 
-        int totalFrames = 0;  //
+        double[] tmp_arr = new double[20000];
 
         try{
             buffReader = new BufferedReader(reader);
             String strTmp = "";
 
             while((strTmp = buffReader.readLine())!=null){
-                    double avgAudioSumPerFrame = 0;
 
-                    String[] audioChannels = strTmp.split("\\s+");
-                    leftChannel = new Double(audioChannels[0]);
-                    rightChannel = new Double(audioChannels[1]);
-                    avgAudioPerSample = (leftChannel + rightChannel) / 2.0;
-
-
-                    while(samplesPerFrames != 0){
-                        samplesPerFrames--;
-                        if(avgAudioPerSample == 0)  continue;
-                        avgAudioSumPerFrame += avgAudioPerSample;
-
-                    }
-                    System.out.println(avgAudioSumPerFrame);
-
-//                    if(samplesPerFrames != 0) {
-//                        avgAudioSumPerFrame /= samplesPerFrames;  //get average audio amplitude per frame
-//                    }
-                    totalFrames++;  //
-
-//                    if(totalFrames >= Shot.getStartFrame() || totalFrames <= Shot.getEndFrame()){
-//                        Shot.setMotionLevel(avgAudioSumPerFrame);
-//                    }
-
-                    samplesPerFrames = StdAudio.SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND; //set it back for next 1470 samples
+                String[] audioChannels = strTmp.split("\\s+");
+                leftChannel = new Double(audioChannels[0]);
+                rightChannel = new Double(audioChannels[1]);
+                avgAudioPerSample = (leftChannel + rightChannel) / 2.0;
 
 
+                avgAudioSumPerFrame += avgAudioPerSample;
+//                  System.out.println(avgAudioSumPerFrame);
 
+                sampleIndex_PerFrame++;
+//                    System.out.println("number of sample indexes in one frame: " + sampleIndex_PerFrame);
+                if(sampleIndex_PerFrame == samplesPerFrames){
+                    /* get average audio amplitude per frame */
+                    //double avgAudioPerFrame = avgAudioSumPerFrame / (double)samplesPerFrames;
+                    //System.out.println(avgAudioSumPerFrame);
 
-//                    samplePair.put(sampleIndex, avgAudioPerSample);
-//                    if(avgAudioPerSample != 0){
-//                        if(avgAudioPerSample > 0){
-//                            maxHeap.offer(new Map.Entry<Integer, Double>() {
-//                                @Override
-//                                public Integer getKey() {
-//                                    return sampleIndex;
-//                                }
-//
-//                                @Override
-//                                public Double getValue() {
-//                                    return samplePair.get(sampleIndex);
-//                                }
-//
-//                                @Override
-//                                public Double setValue(Double value) {
-//                                    return samplePair.get(sampleIndex);
-//                                }
-//                            });
-//
-//                        }else{
-//                            minHeap.offer(new Map.Entry<Integer, Double>() {
-//                                @Override
-//                                public Integer getKey() {
-//                                    return sampleIndex;
-//                                }
-//
-//                                @Override
-//                                public Double getValue() {
-//                                    return samplePair.get(sampleIndex);
-//                                }
-//
-//                                @Override
-//                                public Double setValue(Double value) {
-//                                    return samplePair.get(sampleIndex);
-//                                }
-//                            });
-//                        }
-//                    }
-//
-//                    System.out.println(maxHeap.peek().getValue());
-//                    System.out.println(minHeap.peek().getValue());
-//
-//                Integer sampleIdx =  new Integer(index);
-    //                if(avgAudioPerSample != 0){
-    //                    if(avgAudioPerSample > 0){
-    //                        positive_amplitude.put(sampleIdx, avgAudioPerSample);
-    //                    }else {
-    //                        negative_amplitude.put(sampleIdx, avgAudioPerSample);
-    //                    }
-    //                }
-    //                index++;
+                    //tmp_arr[frameIndex] = avgAudioPerFrame;
+                    tmp_arr[frameIndex] = avgAudioSumPerFrame;
 
+                    frameIndex++;
 
-                    //System.out.println(avgAudioPerSample);
-
+                    avgAudioSumPerFrame = 0;
+                    sampleIndex_PerFrame = 0;
+                }
+//                    samplesPerFrames = StdAudio.SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND; //set it back for next 1470 samples
             }
 
         }catch(FileNotFoundException e){
             e.printStackTrace();
         }
-        System.out.println(totalFrames);
+
+        int intr_idx = 0;  //interrupt index when change shot
+        for (Shot shot : shots) {
+            double avgSumPerShot = 0;
+            //int idx = 0;
+            int cur_startFrame = shot.getStartFrame(), cur_endFrame = shot.getEndFrame();
+
+
+            avgSumPerShot = 0;
+            for (int i = intr_idx; i < tmp_arr.length; i++) {
+                if (i >= cur_startFrame && i <= cur_endFrame) {
+                    avgSumPerShot += tmp_arr[i];
+                } else {
+                    intr_idx = i;
+                    //double audioLevel = Math.round(avgSumPerShot / (double)(cur_endFrame - cur_startFrame));
+
+                    //double audioLevel = Double.parseDouble(String.format("%.3f", avgSumPerShot / (double)(cur_endFrame - cur_startFrame)));
+                    shot.setAudioLevel(Double.parseDouble(String.format("%.3f", avgSumPerShot / (double) (cur_endFrame - cur_startFrame))));   //shouldn't use shot.getTotalNumframe() cuz the current shot have already changed
+                    System.out.println("avg audio sum per SHOT: " + avgSumPerShot);
+                    break;
+                }
+            }
+        }
+        //System.out.println(frameIndex);
         buffReader.close();
-
     }
-
 
 
     public void generatedSummarizedVideo() {
