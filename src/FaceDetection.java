@@ -8,13 +8,42 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class FaceDetection {
+    public static final String HAARCASCADE_FRONTAL_FACE_PATH = "haarcascades/haarcascade_frontalface_alt.xml";
+    public static final String HAARCASCADE_PROFILE_FACE_PATH = "haarcascades/haarcascade_profileface.xml";
+    public static final String HAARCASCADE_HEAD_SHOULDER_PATH = "haarcascades/haarcascade_head_shoulder.xml";
+    public static final String HAARCASCADE_NOSE_PATH = "haarcascades/haarcascade_nose.xml";
+    public static final String HAARCASCADE_MOUTH_PATH = "haarcascades/haarcascade_mouth.xml";
+
     public static Mat loadImage(String imagePath) {
-        Imgcodecs imageCodecs = new Imgcodecs();
-        return imageCodecs.imread(imagePath);
+        return Imgcodecs.imread(imagePath);
     }
+
+    public static Rect[] classify(Mat loadedImage, String cascadePath, double scaleFactor,
+                                    int minNeighbors, int minWidth, int minHeight) {
+        MatOfRect detectedObjects = new MatOfRect();
+
+        CascadeClassifier frontalFaceClassifier = new CascadeClassifier();
+
+        frontalFaceClassifier.load(cascadePath);
+
+        frontalFaceClassifier.detectMultiScale(loadedImage,
+                detectedObjects,
+                scaleFactor,
+                minNeighbors,
+                Objdetect.CASCADE_SCALE_IMAGE,
+                new Size(minWidth, minHeight),
+                new Size()
+        );
+
+        return detectedObjects.toArray();
+    }
+
+
     public static void main(String[] args) {
         OpenCV.loadShared();
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
+        String pathToFrames = args[0];
 
         try {
             FileWriter writer;
@@ -22,31 +51,43 @@ public class FaceDetection {
             writer = new FileWriter(VideoSummarizerAnalysisParams.NUM_DETECTED_FACES_OUTPUT_FILENAME);
 
             for (int i = 0; i < VideoConfig.NUM_FRAMES; i++) {
-                Mat loadedImage = loadImage(args[0] + "frame" + i + ".jpg");
+                Mat loadedImage = loadImage(pathToFrames + "frame" + i + ".jpg");
 
-                MatOfRect facesDetected = new MatOfRect();
+                int minSize = Math.round(loadedImage.rows() * 0.1f);
 
-                CascadeClassifier cascadeClassifier = new CascadeClassifier();
+                Rect[] frontalFaces = classify(loadedImage, HAARCASCADE_FRONTAL_FACE_PATH,
+                        1.1, 3, minSize, minSize);
 
-                int minFaceSize = Math.round(loadedImage.rows() * 0.1f);
+                Rect[] profileFaces = classify(loadedImage, HAARCASCADE_PROFILE_FACE_PATH,
+                        1.1, 3, minSize, minSize);
 
-                cascadeClassifier.load("haarcascade_frontalface_alt.xml");
+                Rect[] headShoulders = classify(loadedImage, HAARCASCADE_HEAD_SHOULDER_PATH,
+                        1.1, 3, minSize, minSize);
 
-                cascadeClassifier.detectMultiScale(loadedImage,
-                        facesDetected,
-                        1.1,
-                        3,
-                        Objdetect.CASCADE_SCALE_IMAGE,
-                        new Size(minFaceSize, minFaceSize),
-                        new Size()
-                );
+                Rect[] noses = classify(loadedImage, HAARCASCADE_NOSE_PATH,
+                        1.1, 3, minSize, minSize);
 
-                Rect[] facesArray = facesDetected.toArray();
+                Rect[] mouths = classify(loadedImage, HAARCASCADE_MOUTH_PATH,
+                        1.1, 3, minSize, minSize);
 
-                System.out.println("frame " + i + " num faces:"+ facesArray.length);
+                System.out.println("frame " + i + " frontal:" + frontalFaces.length + " profile:" +
+                        profileFaces.length + " head shoulder:" + headShoulders.length +
+                        " nose:" + noses.length + " mouth:" + mouths.length);
 
-                writer.write(facesArray.length + "\n");
+                String resultStr = frontalFaces.length +
+                        " " +
+                        profileFaces.length +
+                        " " +
+                        headShoulders.length +
+                        " " +
+                        noses.length +
+                        " " +
+                        mouths.length +
+                        "\n";
+
+                writer.write(resultStr);
             }
+
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
