@@ -6,6 +6,9 @@ public class Shot {
     private double motionLevel;
     private double audioLevel;
 
+
+    public Shot(){ }
+
     public Shot(int startFrame, int endFrame) {
         this.startFrame = startFrame;
         this.endFrame = endFrame;
