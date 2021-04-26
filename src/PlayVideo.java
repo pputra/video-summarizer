@@ -1,8 +1,7 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.util.List;
+import java.util.Set;
 import javax.sound.sampled.AudioInputStream;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -16,7 +15,8 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
     private JSlider slider;
 
     private int frameIndex = 0;
-    private final List<BufferedImage> frames;
+    private final Set<Integer> summarizedFramesLabelSet;
+    private final String RGB_PATH;
     private final PlaySound sound;
 
     private Thread videoTh;
@@ -24,10 +24,12 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
 
     private static volatile boolean isVideoPlaying = false;
 
-    public PlayVideo(List<BufferedImage> frames, AudioInputStream audioInputStream) {
-        this.frames = frames;
+    public PlayVideo(AudioInputStream audioInputStream, String rgbPath, Set<Integer> summarizedFramesLabelSet) {
+        RGB_PATH = rgbPath;
 
         sound = new PlaySound(audioInputStream);
+
+        this.summarizedFramesLabelSet = summarizedFramesLabelSet;
 
         initVideoPlayer();
 
@@ -42,7 +44,7 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
 
     private Thread createVideoThread() {
         return new Thread(() -> {
-            while (frameIndex < frames.size()) {
+            while (frameIndex < VideoConfig.NUM_FRAMES) {
                 try {
                     if (isVideoPlaying) {
                         loadFrame(frameIndex);
@@ -59,7 +61,23 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
 
     private Thread createSoundThread() {
         return new Thread(() -> {
-            while (frameIndex < frames.size()) {
+            while (frameIndex < VideoConfig.NUM_FRAMES) {
+                int currFrameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
+
+                if (!summarizedFramesLabelSet.contains(currFrameIndex)) {
+                    while (!summarizedFramesLabelSet.contains(currFrameIndex)) {
+                        currFrameIndex++;
+
+                        if (currFrameIndex >= VideoConfig.NUM_FRAMES) {
+                            currFrameIndex = 0;
+                        }
+                    }
+
+                    long startTimeInMicroSec = Math.round(currFrameIndex / (float) VideoConfig.FRAMES_PER_SECOND * 1000000.0f);
+
+                    sound.setCurrTimeInMicroSecond(startTimeInMicroSec);
+                }
+
                 if (isVideoPlaying) {
                     sound.play();
                 } else {
@@ -100,13 +118,16 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
     }
 
     private void loadFrame(int i) {
-        framesLabel.setIcon(new ImageIcon(frames.get(i)));
+        RGB[][] rgbChannels = ImageUtil.readRgbChannels(this.RGB_PATH + "frame" + i + ".rgb",
+                VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
+
+        framesLabel.setIcon(new ImageIcon(ImageUtil.rgbChannelsToBufferedImage(rgbChannels)));
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == playButton) {
-            boolean userDidReplay = frameIndex >= frames.size();
+            boolean userDidReplay = frameIndex >= VideoConfig.NUM_FRAMES - 1;
 
             if (userDidReplay) {
                 frameIndex = 0;

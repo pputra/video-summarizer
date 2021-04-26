@@ -2,7 +2,9 @@ import javax.sound.sampled.AudioInputStream;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class VideoSummarizer {
     private final String pathToFrame;
@@ -11,11 +13,12 @@ public class VideoSummarizer {
 
     private final List<BufferedImage> originalFrames = new ArrayList<>();
     private AudioInputStream originalAudioStream;
-    private final List<BufferedImage> summarizedFrames = new ArrayList<>();
+    private List<BufferedImage> summarizedFrames = new ArrayList<>();
+    private Set<Integer> summarizedFramesLabelSet = new HashSet<>();
     private AudioInputStream summarizedAudioInputStream;
-    private final List<Shot> shots;
+    private List<Shot> shots;
 
-    public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) throws IOException {
+    public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) {
         this.pathToFrame = pathToFrame;
         this.pathToAudio = pathToAudio;
         this.pathToFrameRgb = pathToFrameRgb;
@@ -24,10 +27,9 @@ public class VideoSummarizer {
         shots = OutputUtil.readShotBoundariesFromFile(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
         System.out.println("calculating motion scores...");
         calculateMotionScore();
-        //TODO: calculate audio score
-//        calculateAudioScore();
-
-        //TODO: calculate face detection score
+//        //TODO: calculate audio score
+////        calculateAudioScore();
+//        //TODO: calculate face detection score
         System.out.println("sorting shots by score...");
         Shot.Sorter.sortByScoreDesc(shots);
         shots.forEach((System.out::println));
@@ -210,42 +212,21 @@ public class VideoSummarizer {
 
     public void generatedSummarizedVideo() {
         int currSummarizedFrames = 0;
-        List<AudioInputStream> summarizedAudioStreams = new ArrayList<>();
-        List<Shot> summarizedShots = new ArrayList<>();
 
         for (Shot shot : shots) {
             if (currSummarizedFrames >= VideoConfig.NUM_SUMMARIZED_FRAMES) {
                 break;
             }
 
-            summarizedShots.add(shot);
+            for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
+                summarizedFramesLabelSet.add(i);
+            }
             currSummarizedFrames += shot.getTotalNumFrames();
         }
 
         System.out.println("video duration: " + Math.round(currSummarizedFrames / (double) VideoConfig.FRAMES_PER_SECOND) + "s");
 
-        Shot.Sorter.sortByTimeStampAsc(summarizedShots);
-
-        for (Shot shot : summarizedShots) {
-            for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
-                RGB[][] rgbChannels = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb", VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
-                BufferedImage bufferedImage = new BufferedImage(VideoConfig.FRAMES_WIDTH, VideoConfig.FRAMES_HEIGHT, BufferedImage.TYPE_INT_RGB);
-
-                for (int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
-                    for (int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
-                        RGB rgb = rgbChannels[y][x];
-                        bufferedImage.setRGB(x, y, ImageUtil.rgbToPixel(rgb));
-                    }
-                }
-
-                summarizedFrames.add(bufferedImage);
-            }
-
-            AudioInputStream audioInputStream = SoundUtil.trim(pathToAudio, shot.getStartTimeInFemtoSecond(), shot.getShotDurationInFemtoSecond());
-            summarizedAudioStreams.add(audioInputStream);
-        }
-
-        this.summarizedAudioInputStream = SoundUtil.combine(summarizedAudioStreams);
+        summarizedAudioInputStream = SoundUtil.readAudioInputStream(pathToAudio);
     }
 
     public List<BufferedImage> getOriginalFrames() {
@@ -264,10 +245,13 @@ public class VideoSummarizer {
         return summarizedAudioInputStream;
     }
 
+    public Set<Integer> getSummarizedFramesLabelSet() {
+        return summarizedFramesLabelSet;
+    }
+
     public static void main(String[] args) throws IOException {
         VideoSummarizer videoSummarizer = new VideoSummarizer(args[0], args[1], args[2]);
         System.out.println("starting video player");
-        new PlayVideo(videoSummarizer.getSummarizedFrames(),
-                videoSummarizer.getSummarizedAudioInputStream());
+        new PlayVideo(videoSummarizer.getSummarizedAudioInputStream(), args[2], videoSummarizer.getSummarizedFramesLabelSet());
     }
 }

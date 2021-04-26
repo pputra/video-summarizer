@@ -1,13 +1,30 @@
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import java.io.File;
-import java.io.SequenceInputStream;
+import javax.sound.sampled.*;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 
 public class SoundUtil {
+    public static AudioInputStream readAudioInputStream(String sourceFileName) {
+        InputStream waveStream = null;
+
+        try {
+            waveStream = new FileInputStream(sourceFileName);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        AudioInputStream audioInputStream = null;
+
+        try {
+            InputStream bufferedIn = new BufferedInputStream(waveStream);
+            audioInputStream = AudioSystem.getAudioInputStream(bufferedIn);
+        } catch (UnsupportedAudioFileException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return audioInputStream;
+    }
+
     public static AudioInputStream trim(String sourceFileName, long startFemtoSecond, long femtoSecondsToCopy) {
         AudioInputStream inputStream;
         AudioInputStream shortenedStream = null;

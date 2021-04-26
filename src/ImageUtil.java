@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -40,5 +41,18 @@ public class ImageUtil {
 
     public static int rgbToPixel(RGB rgb) {
         return 0xff000000 | ((rgb.getR() & 0xff) << 16) | ((rgb.getG() & 0xff) << 8) | (rgb.getB() & 0xff);
+    }
+
+    public static BufferedImage rgbChannelsToBufferedImage(RGB[][] rgbChannels) {
+        BufferedImage bufferedImage = new BufferedImage(VideoConfig.FRAMES_WIDTH, VideoConfig.FRAMES_HEIGHT, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
+            for (int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
+                RGB rgb = rgbChannels[y][x];
+                bufferedImage.setRGB(x, y, ImageUtil.rgbToPixel(rgb));
+            }
+        }
+
+        return bufferedImage;
     }
 }

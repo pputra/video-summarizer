@@ -2,9 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class OutputUtil {
     public static void writeShotBoundariesToFile(List<Shot> shots, String outPath) {
@@ -40,5 +38,17 @@ public class OutputUtil {
         }
 
         return shots;
+    }
+
+    public static Set<Integer> shotsToFrameLabelSet(List<Shot> shots) {
+        Set<Integer> frameLabelSet = new HashSet<>();
+
+        for (Shot shot : shots) {
+            for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
+                frameLabelSet.add(i);
+            }
+        }
+
+        return frameLabelSet;
     }
 }

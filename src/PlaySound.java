@@ -82,4 +82,8 @@ public class PlaySound {
 	public void setCurrTimeSecond(int sec) {
     	clip.setMicrosecondPosition(sec * 1000000);
 	}
+
+	public void setCurrTimeInMicroSecond(long microSec) {
+		clip.setMicrosecondPosition(microSec);
+	}
 }
