@@ -13,7 +13,7 @@ public class VideoSummarizer {
     private AudioInputStream originalAudioStream;
     private final List<BufferedImage> summarizedFrames = new ArrayList<>();
     private AudioInputStream summarizedAudioInputStream;
-    private final List<Shot> shots = new ArrayList<>();
+    private final List<Shot> shots;
 
     public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) throws IOException {
         this.pathToFrame = pathToFrame;
@@ -21,12 +21,11 @@ public class VideoSummarizer {
         this.pathToFrameRgb = pathToFrameRgb;
 
         System.out.println("calculating shot boundaries...");
-        analyzeShots();
-        OutputUtil.writeShotBoundariesToFile(shots, VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
+        shots = OutputUtil.readShotBoundariesFromFile(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
         System.out.println("calculating motion scores...");
         calculateMotionScore();
         //TODO: calculate audio score
-        calculateAudioScore();
+//        calculateAudioScore();
 
         //TODO: calculate face detection score
         System.out.println("sorting shots by score...");
