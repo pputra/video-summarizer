@@ -1,7 +1,10 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.sound.sampled.AudioInputStream;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -16,6 +19,8 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
 
     private int frameIndex = 0;
     private final Set<Integer> summarizedFramesLabelSet;
+    private final Map<Integer, BufferedImage> frameImageCache;
+    private final TreeSet<Integer> startFrameSet;
     private final String RGB_PATH;
     private final PlaySound sound;
 
@@ -23,13 +28,18 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
     private Thread soundTh;
 
     private static volatile boolean isVideoPlaying = false;
+    private final int FRAME_OFFSET_DELAY = 18;
 
-    public PlayVideo(AudioInputStream audioInputStream, String rgbPath, Set<Integer> summarizedFramesLabelSet) {
+    public PlayVideo(AudioInputStream audioInputStream, String rgbPath,
+                     Set<Integer> summarizedFramesLabelSet, Map<Integer, BufferedImage> frameImageCache,
+                     TreeSet<Integer> startFrameSet) {
         RGB_PATH = rgbPath;
 
         sound = new PlaySound(audioInputStream);
 
         this.summarizedFramesLabelSet = summarizedFramesLabelSet;
+        this.frameImageCache = frameImageCache;
+        this.startFrameSet = startFrameSet;
 
         initVideoPlayer();
 
@@ -47,7 +57,7 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
             while (frameIndex < VideoConfig.NUM_FRAMES) {
                 try {
                     if (isVideoPlaying) {
-                        loadFrame(frameIndex);
+                        loadFrame(Math.max(0, frameIndex - FRAME_OFFSET_DELAY));
                         frameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
                         slider.setValue((int) Math.round((sound.getCurrTimeMillisecond() / 1000.0)));
                         Thread.sleep(1000 / VideoConfig.FRAMES_PER_SECOND);
@@ -118,6 +128,12 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
     }
 
     private void loadFrame(int i) {
+        if (frameImageCache.containsKey(i)) {
+            framesLabel.setIcon(new ImageIcon(frameImageCache.get(i)));
+
+            return;
+        }
+
         RGB[][] rgbChannels = ImageUtil.readRgbChannels(this.RGB_PATH + "frame" + i + ".rgb",
                 VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
 

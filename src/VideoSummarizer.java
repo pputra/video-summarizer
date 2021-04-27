@@ -1,10 +1,7 @@
 import javax.sound.sampled.AudioInputStream;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class VideoSummarizer {
     private final String pathToFrame;
@@ -14,11 +11,13 @@ public class VideoSummarizer {
     private final List<BufferedImage> originalFrames = new ArrayList<>();
     private AudioInputStream originalAudioStream;
     private List<BufferedImage> summarizedFrames = new ArrayList<>();
+    private Map<Integer, BufferedImage> frameImageCache = new HashMap<>();
     private Set<Integer> summarizedFramesLabelSet = new HashSet<>();
+    private TreeSet<Integer> startFramesSet = new TreeSet<>();
     private AudioInputStream summarizedAudioInputStream;
     private List<Shot> shots;
 
-    public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) {
+    public VideoSummarizer(String pathToFrame, String pathToAudio, String pathToFrameRgb) throws IOException {
         this.pathToFrame = pathToFrame;
         this.pathToAudio = pathToAudio;
         this.pathToFrameRgb = pathToFrameRgb;
@@ -28,7 +27,7 @@ public class VideoSummarizer {
         System.out.println("calculating motion scores...");
         calculateMotionScore();
 //        //TODO: calculate audio score
-////        calculateAudioScore();
+//        calculateAudioScore();
 //        //TODO: calculate face detection score
         System.out.println("sorting shots by score...");
         Shot.Sorter.sortByScoreDesc(shots);
@@ -212,19 +211,37 @@ public class VideoSummarizer {
 
     public void generatedSummarizedVideo() {
         int currSummarizedFrames = 0;
+        List<Shot> summarizedShots = new ArrayList<>();
 
         for (Shot shot : shots) {
             if (currSummarizedFrames >= VideoConfig.NUM_SUMMARIZED_FRAMES) {
                 break;
             }
 
+            startFramesSet.add(shot.getStartFrame());
+
+            summarizedShots.add(shot);
+
             for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
                 summarizedFramesLabelSet.add(i);
+                RGB[][] rgbChannels = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb", VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
+                frameImageCache.put(i, ImageUtil.rgbChannelsToBufferedImage(rgbChannels));
             }
             currSummarizedFrames += shot.getTotalNumFrames();
         }
+        Shot.Sorter.sortByTimeStampAsc(summarizedShots);
+
+//        System.out.println("DEBUG");
+//        summarizedShots.forEach((System.out::println));
 
         System.out.println("video duration: " + Math.round(currSummarizedFrames / (double) VideoConfig.FRAMES_PER_SECOND) + "s");
+
+//        for (int i = 2771; i < 3083; i++) {
+//            startFramesSet.add(2771);
+//            summarizedFramesLabelSet.add(i);
+//            RGB[][] rgbChannels = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb", VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
+//            frameImageCache.put(i, ImageUtil.rgbChannelsToBufferedImage(rgbChannels));
+//        }
 
         summarizedAudioInputStream = SoundUtil.readAudioInputStream(pathToAudio);
     }
@@ -249,9 +266,18 @@ public class VideoSummarizer {
         return summarizedFramesLabelSet;
     }
 
+    public Map<Integer, BufferedImage> getFrameImageCache() {
+        return frameImageCache;
+    }
+
+    public TreeSet<Integer> getStartFramesSet() {
+        return startFramesSet;
+    }
+
     public static void main(String[] args) throws IOException {
         VideoSummarizer videoSummarizer = new VideoSummarizer(args[0], args[1], args[2]);
         System.out.println("starting video player");
-        new PlayVideo(videoSummarizer.getSummarizedAudioInputStream(), args[2], videoSummarizer.getSummarizedFramesLabelSet());
+        new PlayVideo(videoSummarizer.getSummarizedAudioInputStream(), args[2],
+                videoSummarizer.getSummarizedFramesLabelSet(), videoSummarizer.getFrameImageCache(), videoSummarizer.getStartFramesSet());
     }
 }
