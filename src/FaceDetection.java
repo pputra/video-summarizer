@@ -74,6 +74,8 @@ public class FaceDetection {
                         profileFaces.length + " head shoulder:" + headShoulders.length +
                         " nose:" + noses.length + " mouth:" + mouths.length);
 
+
+
                 String resultStr = frontalFaces.length +
                         " " +
                         profileFaces.length +
