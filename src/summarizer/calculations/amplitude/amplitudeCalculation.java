@@ -1,3 +1,5 @@
+package summarizer.calculations.amplitude;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;

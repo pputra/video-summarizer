@@ -1,3 +1,5 @@
+package summarizer.utilities;
+
 import javax.sound.sampled.*;
 import java.io.*;
 import java.util.Collections;

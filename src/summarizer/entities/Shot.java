@@ -1,3 +1,8 @@
+package summarizer.entities;
+
+import summarizer.configs.VideoConfig;
+import summarizer.configs.VideoSummarizerAnalysisParams;
+
 import java.util.List;
 
 public class Shot {

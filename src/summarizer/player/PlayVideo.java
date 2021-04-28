@@ -1,3 +1,10 @@
+package summarizer.player;
+
+import summarizer.utilities.ImageUtil;
+import summarizer.audio.PlaySound;
+import summarizer.configs.VideoConfig;
+import summarizer.entities.RGB;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

@@ -1,7 +1,6 @@
-
+package summarizer.utilities;
 
 import java.awt.*;
-import java.awt.image.*;
 import java.io.*;
 import javax.swing.*;
 import java.io.File;

@@ -1,8 +1,12 @@
+package summarizer.calculations.face;
+
 import nu.pattern.OpenCV;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.objdetect.Objdetect;
+import summarizer.configs.VideoConfig;
+import summarizer.configs.VideoSummarizerAnalysisParams;
 
 import java.io.FileWriter;
 import java.io.IOException;

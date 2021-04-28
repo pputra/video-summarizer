@@ -1,7 +1,20 @@
+package summarizer;
+
+import summarizer.configs.VideoConfig;
+import summarizer.configs.VideoSummarizerAnalysisParams;
+import summarizer.entities.RGB;
+import summarizer.entities.Shot;
+import summarizer.player.PlayVideo;
+import summarizer.utilities.ImageUtil;
+import summarizer.utilities.OutputUtil;
+import summarizer.utilities.SoundUtil;
+
 import javax.sound.sampled.AudioInputStream;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+
+import static summarizer.configs.VideoConfig.AUDIO_SAMPLE_RATE;
 
 public class VideoSummarizer {
     private final String pathToFrame;
@@ -131,7 +144,7 @@ public class VideoSummarizer {
             e.printStackTrace();
         }
 
-        int samplesPerFrames = StdAudio.SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND;
+        int samplesPerFrames = AUDIO_SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND;
 
         double leftChannel = 0;
         double rightChannel = 0;

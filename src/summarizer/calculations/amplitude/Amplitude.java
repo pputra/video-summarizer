@@ -1,3 +1,7 @@
+package summarizer.calculations.amplitude;
+
+import summarizer.audio.WaveFile;
+
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.File;
 import java.io.IOException;
