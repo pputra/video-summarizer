@@ -131,7 +131,7 @@ public class VideoSummarizer {
             e.printStackTrace();
         }
 
-        int samplesPerFrames = StdAudio.SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND;
+        int samplesPerFrames = 44100/ VideoConfig.FRAMES_PER_SECOND;
 
         double leftChannel = 0;
         double rightChannel = 0;
