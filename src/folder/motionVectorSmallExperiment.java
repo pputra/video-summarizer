@@ -1,4 +1,4 @@
-package summarizer.calculations.motion;
+package folder;
 
 public class motionVectorSmallExperiment {
 
