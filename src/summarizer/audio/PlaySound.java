@@ -1,3 +1,5 @@
+package summarizer.audio;
+
 import java.io.*;
 
 import javax.sound.sampled.*;

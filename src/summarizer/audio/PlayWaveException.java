@@ -1,3 +1,5 @@
+package summarizer.audio;
+
 /**
  * @author Giulio
  */

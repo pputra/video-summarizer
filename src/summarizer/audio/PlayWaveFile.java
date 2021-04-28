@@ -1,3 +1,7 @@
+package summarizer.audio;
+
+import summarizer.audio.PlaySound;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 

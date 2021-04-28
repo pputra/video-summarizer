@@ -1,15 +1,12 @@
+package summarizer.calculations.boundary;
 
 import java.awt.*;
-import java.awt.image.*;
 import java.io.*;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import javax.imageio.ImageIO;
 
 public class BoundaryColorHistogramDetect {
 

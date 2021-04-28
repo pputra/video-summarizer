@@ -1,8 +1,8 @@
+package summarizer.player;
+
 import java.awt.*;
-import java.awt.image.*;
 import java.io.*;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;

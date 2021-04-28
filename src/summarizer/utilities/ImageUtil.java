@@ -1,3 +1,8 @@
+package summarizer.utilities;
+
+import summarizer.configs.VideoConfig;
+import summarizer.entities.RGB;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;

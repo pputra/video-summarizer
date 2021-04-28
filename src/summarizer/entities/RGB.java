@@ -1,3 +1,5 @@
+package summarizer.entities;
+
 public class RGB {
     private byte r;
     private byte g;

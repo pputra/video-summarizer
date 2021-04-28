@@ -1,5 +1,4 @@
-
-import javafx.util.Pair;
+package summarizer.calculations.motion;
 
 import java.awt.*;
 import java.awt.image.*;

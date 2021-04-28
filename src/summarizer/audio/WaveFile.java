@@ -1,3 +1,5 @@
+package summarizer.audio;
+
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.FileNotFoundException;
