@@ -1,5 +1,3 @@
-package summarizer.calculations.amplitude;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -59,6 +57,8 @@ public class amplitudeCalculation {
          float right;
          int count=0;
          ArrayList<Float> amplitudeForEachShot=new ArrayList<>();
+         //ArrayList<Integer> numOfFramesOfEachShots=new ArrayList<>();
+         ArrayList<Float> averageValueForEachShot=new ArrayList<>();
          float amplitude=0;
          int nextLineCount=samples.get(count);
          int totalLineCount=0;
@@ -85,6 +85,8 @@ public class amplitudeCalculation {
             nextLineCount--;
             if(nextLineCount==0)
             {
+               amplitudeForEachShot.add(amplitude);
+               averageValueForEachShot.add(amplitude/diff.get(count));
                count++;
                System.out.println("count "+count);
                if(count>=samples.size())
@@ -92,7 +94,7 @@ public class amplitudeCalculation {
                   System.out.println(totalLineCount);
                   System.exit(100);
                }
-               amplitudeForEachShot.add(amplitude);
+
                nextLineCount=samples.get(count);
              //  System.out.println(nextLineCount);
                while(nextLineCount==0)
@@ -105,6 +107,9 @@ public class amplitudeCalculation {
 
          }
          myReader2.close();
+
+
+
       } catch (FileNotFoundException e) {
          System.out.println("An error occurred.");
          e.printStackTrace();
