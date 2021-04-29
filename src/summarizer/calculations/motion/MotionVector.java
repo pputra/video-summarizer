@@ -1,8 +1,11 @@
-package summarizer.calculations.motion;
+
+import javafx.util.Pair;
 
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 import javax.swing.*;
 
 
@@ -24,7 +27,9 @@ public class MotionVector{
    int blockMotionNum=(2*k+1)^2;
    int rowNum=320/16;
    int colNum=180/15;//12
-
+   int count1=0;
+   File shotBoundary;
+   ArrayList<Integer> shot_arr=new ArrayList<>();
 
    /////////////////////////
 
@@ -33,6 +38,10 @@ public class MotionVector{
     */
    private void readImageRGB(int width, int height, String imgPath, BufferedImage img,BufferedImage img_two)
    {
+
+
+
+
       int[] motionVectorForOneImage=new int[16198];
       try
       {
@@ -79,10 +88,26 @@ public class MotionVector{
                   ind++;
                }
             }
+
             motionVectorForOneImage[count]=calculateMotionVector(oriImagePixel,oriImagePixel_next);
+            System.out.println("count "+count+" motionVectorForOneImage["+count+"] "+motionVectorForOneImage[count]);
             count++;
-            System.out.println("count "+count+"motionVectorForOneImage["+count+"]"+motionVectorForOneImage[count]);
+
          }//while end
+
+         //caluculate the average motion vector for each shot
+         double[] shotMotion=new double[shot_arr.size()/2];
+         for(int i=0;i<shotMotion.length;i=i+2)
+         {
+            int sum=0;
+            int difference=shot_arr.get(i+1)-shot_arr.get(i);
+            for(int j=shot_arr.get(i);j<difference;j++)
+            {
+               sum=sum+shot_arr.get(j);
+            }
+
+            shotMotion[i]=sum/difference;
+         }
 
 
 
@@ -99,6 +124,8 @@ public class MotionVector{
 
    public int calculateMotionVector(int[][] frame_n,int[][] frame_nPlusOne)
    {
+      //count1++;
+     // System.out.println("count1 "+count1);
       int blockCount=0;
       int x_original=0;
       int y_original=0;
@@ -130,11 +157,19 @@ public class MotionVector{
          blockCount++;
          initialBlock=blockGet(leftCorner,frame_n);
          int new_value;
+         compareBlock=blockGet(leftCorner,frame_nPlusOne);
+         new_value=compareTwoBlocks(initialBlock,compareBlock);
+         target=new int[]{leftCorner[0],leftCorner[1]};
          for(int i=-k;i<=k;i++)
          {
             for(int j=-k;j<k;j++)
             {
-               new_value=0;
+
+                // define the original one
+
+              /* new_value=0;
+               min=new_value;
+               target=new int[]{leftCorner[0],leftCorner[1]};*/
                int new_x=leftCorner[0]+i;
                int new_y=leftCorner[1]+j;
 
@@ -145,30 +180,32 @@ public class MotionVector{
                   cicular=new int[]{new_x,new_y};
                   compareBlock=blockGet(cicular,frame_nPlusOne);
                   new_value=compareTwoBlocks(initialBlock,compareBlock);
-                  if(i==-k&&j==-k)
+                //  System.out.println("new_value "+new_value);
+                  /*if(i==-k&&j==-k)
                   {
                      min=new_value;
                      target=new int[]{cicular[0],cicular[1]};
 
                   }
                   else
-                  {
+                  {*/
                      if(new_value<min)
                      {
                         min=new_value;
                         target=new int[]{cicular[0],cicular[1]};
                      }
 
-                  }
+                 /* }*/
 
                }
 
             }
          }
-         System.out.println((int)Math.sqrt((leftCorner[0]-target[0])^2+(leftCorner[1]-target[1])^2));
-         absoluteDifferenceForOneImage=absoluteDifferenceForOneImage+(int)Math.sqrt((leftCorner[0]-target[0])^2+(leftCorner[1]-target[1])^2);
+       //  System.out.println(Math.sqrt(Math.pow((leftCorner[0]-target[0]),2)+Math.pow(leftCorner[1]-target[1],2)));
+         absoluteDifferenceForOneImage= (int) (absoluteDifferenceForOneImage+Math.sqrt(Math.pow(leftCorner[0]-target[0],2)+Math.pow(leftCorner[1]-target[1],2)));
+        // System.out.println("absoluteDifferenceForOneImage "+absoluteDifferenceForOneImage);
       }
-
+      System.out.println("absoluteDifferenceForOneImage "+absoluteDifferenceForOneImage);
       return absoluteDifferenceForOneImage;
    }
 
@@ -204,11 +241,31 @@ public class MotionVector{
 
       return value;
    }
-   public void showIms(String[] args){
+   public void showIms(String[] args) throws FileNotFoundException {
 
       // Read a parameter from command line
       String param1 = args[1];
+      shotBoundary=new File(args[1]);
+      Scanner myReader=new Scanner(shotBoundary);
       System.out.println("The second parameter was: " + param1);
+      String delimeter=" ";
+      String[] temp;
+      int count=0;
+      while(myReader.hasNextLine())
+      {
+         String data = myReader.nextLine();
+         temp = data.split(delimeter);
+         shot_arr.add(Integer.parseInt(temp[0]));
+         System.out.println(shot_arr.get(count));
+         count++;
+         shot_arr.add(Integer.parseInt(temp[1]));
+         System.out.println(shot_arr.get(count));
+         count++;
+
+         // small=Float.parseFloat(temp[0]);
+        // small=Integer.parseInt(temp[0]);
+         //large=Integer.parseInt(temp[1]);
+      }
 
       // Read in the specified image
       imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -238,7 +295,7 @@ public class MotionVector{
       frame.setVisible(true);
    }
 
-   public static void main(String[] args) {
+   public static void main(String[] args) throws FileNotFoundException {
       MotionVector ren = new MotionVector();
       ren.showIms(args);
    }
