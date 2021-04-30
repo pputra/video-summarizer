@@ -42,7 +42,7 @@ public class VideoSummarizer {
         calculateMotionScore();
 //      TODO: calculate audio score
         System.out.println("calculating audio scores...");
-        calculateAudioScore();
+        //calculateAudioScore();
 //      TODO: calculate face detection score
         System.out.println("sorting shots by score...");
         Shot.Sorter.sortByScoreDesc(shots);
