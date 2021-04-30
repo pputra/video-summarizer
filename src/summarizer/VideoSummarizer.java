@@ -39,10 +39,10 @@ public class VideoSummarizer {
         System.out.println("calculating shot boundaries...");
         shots = OutputUtil.readShotBoundariesFromFile(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
         System.out.println("calculating motion scores...");
-        calculateMotionScore();
+//        calculateMotionScore();
 //      TODO: calculate audio score
         System.out.println("calculating audio scores...");
-        //calculateAudioScore();
+        calculateAudioScore();
 //      TODO: calculate face detection score
         System.out.println("sorting shots by score...");
         Shot.Sorter.sortByScoreDesc(shots);
@@ -124,7 +124,9 @@ public class VideoSummarizer {
                 sumAvgRgbDiff += (sumDiffR + sumDiffG + sumDiffB) / 3.0;
             }
 
-            shot.setMotionLevel(Math.round(sumAvgRgbDiff / (double) shot.getTotalNumFrames()));
+            //shot.setMotionLevel(Math.round(sumAvgRgbDiff / (double) shot.getTotalNumFrames()));
+            shot.setMotionLevel(0);
+
         }
     }
 
@@ -166,8 +168,8 @@ public class VideoSummarizer {
                 String[] audioChannels = strTmp.split("\\s+");
                 leftChannel = new Double(audioChannels[0]);
                 rightChannel = new Double(audioChannels[1]);
-                avgAudioPerSample = (leftChannel + rightChannel) / VideoSummarizerAnalysisParams.AUDIO_CHANNEL;
-
+                avgAudioPerSample = (Math.abs(leftChannel) + Math.abs(rightChannel)) / VideoSummarizerAnalysisParams.AUDIO_CHANNEL;
+                //avgAudioPerSample = (leftChannel + rightChannel) / VideoSummarizerAnalysisParams.AUDIO_CHANNEL;
 
                 avgAudioSumPerFrame += avgAudioPerSample;
 //              System.out.println(avgAudioSumPerFrame);
@@ -175,11 +177,7 @@ public class VideoSummarizer {
                 sampleIndex_PerFrame++;
 //              System.out.println("number of sample indexes in one frame: " + sampleIndex_PerFrame);
                 if(sampleIndex_PerFrame == samplesPerFrames){
-                    /* get average audio amplitude per frame */
-                    //double avgAudioPerFrame = avgAudioSumPerFrame / (double)samplesPerFrames;
-                    //System.out.println(avgAudioSumPerFrame);
 
-                    //tmp_arr[frameIndex] = avgAudioPerFrame;
                     tmp_arr[frameIndex] = avgAudioSumPerFrame;
                     frameIndex++;
 
@@ -193,33 +191,49 @@ public class VideoSummarizer {
             e.printStackTrace();
         }
 
-        int intr_idx = 0;  //interrupt index when change shot
+//        for (int i = 0; i < 31; i++){
+//            System.out.println("index:" + i + " " + "tmp_arr value:" + tmp_arr[i]);
+//        }
+
+        //int intr_idx = 0;  //interrupt index when change shot
         for (Shot shot : shots) {
             double avgSumPerShot = 0;
             //int idx = 0;
             int cur_startFrame = shot.getStartFrame(), cur_endFrame = shot.getEndFrame();
 
-            avgSumPerShot = 0;
-            for (int i = intr_idx; i < tmp_arr.length; i++) {
-                if (i >= cur_startFrame && i <= cur_endFrame) {
-                    avgSumPerShot += tmp_arr[i];
-                } else {
-                    intr_idx = i;
-                    //double audioLevel = Math.round(avgSumPerShot / (double)(cur_endFrame - cur_startFrame));
-
-                    //double audioLevel = Double.parseDouble(String.format("%.3f", avgSumPerShot / (double)(cur_endFrame - cur_startFrame)));
-                    double audioLevel = avgSumPerShot / (double) (cur_endFrame - cur_startFrame);
-
-                    //deal with audioLevel which is extremely small
-                    if(isInfinite(audioLevel)){
-                        audioLevel = 0;
-                    }
-
-                    shot.setAudioLevel(Double.parseDouble(String.format("%.3f", audioLevel)));   //shouldn't use shot.getTotalNumframe() cuz the current shot have already changed
-                    //System.out.println("avg audio sum per SHOT: " + avgSumPerShot);
-                    break;
-                }
+            for (int i = shot.getStartFrame(); i < shot.getEndFrame(); i++) {
+                avgSumPerShot += tmp_arr[i];
             }
+
+            double audioLevel = avgSumPerShot / (double) (cur_endFrame - cur_startFrame - 1);
+            System.out.println(audioLevel);
+            shot.setAudioLevel(Double.parseDouble(String.format("%.5f", audioLevel)));   //shouldn't use shot.getTotalNumframe() cuz the current shot have already changed
+
+//            System.out.println("frame: " + shot.getStartFrame());
+//            avgSumPerShot = 0;
+//            for (int i = intr_idx; i < tmp_arr.length; i++) {
+//                if (i >= cur_startFrame && i < cur_endFrame) {
+//                    System.out.println(avgSumPerShot);
+//                    avgSumPerShot += tmp_arr[i];
+//                } else {
+//                    intr_idx = i;
+//                    //double audioLevel = Math.round(avgSumPerShot / (double)(cur_endFrame - cur_startFrame));
+//                    //double audioLevel = Double.parseDouble(String.format("%.3f", avgSumPerShot / (double)(cur_endFrame - cur_startFrame)));
+//
+//                    double audioLevel = avgSumPerShot / (double) (cur_endFrame - cur_startFrame - 1);
+////                    System.out.println(audioLevel);
+//
+//                    //deal with audioLevel which is extremely small
+////                    if(isInfinite(audioLevel)){
+////                        audioLevel = 0;
+////                    }
+//                    shot.setAudioLevel(Double.parseDouble(String.format("%.5f", audioLevel)));   //shouldn't use shot.getTotalNumframe() cuz the current shot have already changed
+//
+//                    //shot.setAudioLevel(Double.parseDouble(String.format("%.0f", Math.abs(audioLevel))));   //shouldn't use shot.getTotalNumframe() cuz the current shot have already changed
+//                    //System.out.println("avg audio sum per SHOT: " + avgSumPerShot);
+//                    break;
+//                }
+//            }
         }
         //System.out.println(frameIndex);
         buffReader.close();
