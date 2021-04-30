@@ -1,3 +1,4 @@
+package summarizer.utilities;
 
 import java.io.File;
 import java.io.InputStreamReader;
@@ -7,10 +8,11 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
  
 public class faces_reformat {
+    public static final int split_number = 10;
 
     public static String reformat_line(String line){
         String new_line = "";
-        String[] arrOfStr = line.split(":", 10);
+        String[] arrOfStr = line.split(":", split_number);
         int cnt = 0;
         for(String a: arrOfStr){
             cnt++;
@@ -60,8 +62,7 @@ public class faces_reformat {
                 
                               
             }
- 
-            
+
             
             out.flush(); 
             out.close();
