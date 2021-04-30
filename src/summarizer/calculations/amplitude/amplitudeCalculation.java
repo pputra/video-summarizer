@@ -68,8 +68,8 @@ public class amplitudeCalculation {
             String ampli = myReader2.nextLine();
             temp = ampli.split(delimeter);
             // small=Float.parseFloat(temp[0]);
-            left= Float.parseFloat(temp[0]);
-            right=Float.parseFloat(temp[1]);
+            left= Math.abs(Float.parseFloat(temp[0]));
+            right=Math.abs(Float.parseFloat(temp[1]));
             amplitude=amplitude+(left+right)/2;
          //   dif=large-small;
 

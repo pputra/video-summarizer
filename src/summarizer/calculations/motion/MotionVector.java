@@ -1,20 +1,9 @@
+package summarizer.calculations.motion;
 
-import javafx.util.Pair;
-
-import java.awt.*;
-import java.awt.image.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Scanner;
-import javax.swing.*;
-
 
 public class MotionVector{
-
-   JFrame frame;
-   JLabel lbIm1;
-   BufferedImage imgOne;
-   BufferedImage imgTwo;
    int width = 320;
    int height = 180;
    int[][] oriImagePixel=new int[320][180];
@@ -28,29 +17,26 @@ public class MotionVector{
    int rowNum=320/16;
    int colNum=180/15;//12
    int count1=0;
-   File shotBoundary;
    ArrayList<Integer> shot_arr=new ArrayList<>();
 
-   /////////////////////////
+   private final String RGB_PATH;
 
-   /** Read Image RGB
-    *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
-    */
-   private void readImageRGB(int width, int height, String imgPath, BufferedImage img,BufferedImage img_two)
-   {
+   public MotionVector(String rgbPath) {
+      RGB_PATH = rgbPath;
+   }
 
+   public void calculate() {
+//      int[] motionVectorForOneImage=new int[16198];
+      FileWriter writer;
+      try {
+         String MOTION_VECTOR_RESULT_FILENAME = "motion_vectors.txt";
+         writer = new FileWriter(MOTION_VECTOR_RESULT_FILENAME);
 
-
-
-      int[] motionVectorForOneImage=new int[16198];
-      try
-      {
          int count=0;
          int frameLength = width*height*3;
-         while(count<16199)
-         {
-            File file = new File(imgPath+"\\frame"+count+".rgb");
-            File file_1 = new File(imgPath+"\\frame"+(count+1)+".rgb");
+         while(count<=16198) {
+            File file = new File(RGB_PATH+"frame"+count+".rgb");
+            File file_1 = new File(RGB_PATH+"frame"+(count+1)+".rgb");
             RandomAccessFile raf = new RandomAccessFile(file, "r");
             RandomAccessFile raf_1 = new RandomAccessFile(file_1, "r");
             raf.seek(0);
@@ -65,10 +51,8 @@ public class MotionVector{
             raf_1.read(bytes_1);
 
             int ind = 0;
-            for(int y = 0; y < height; y++)
-            {
-               for(int x = 0; x < width; x++)
-               {
+            for(int y = 0; y < height; y++) {
+               for(int x = 0; x < width; x++) {
                   byte a = 0;
                   byte r = bytes[ind];
                   byte g = bytes[ind+height*width];
@@ -84,40 +68,32 @@ public class MotionVector{
                   //int pix = ((a << 24) + (r << 16) + (g << 8) + b);
                   oriImagePixel[x][y]=pix;
                   oriImagePixel_next[x][y]=pix_1;
-                  img.setRGB(x,y,pix);
                   ind++;
                }
+               raf.close();
+               raf_1.close();
             }
 
-            motionVectorForOneImage[count]=calculateMotionVector(oriImagePixel,oriImagePixel_next);
-            System.out.println("count "+count+" motionVectorForOneImage["+count+"] "+motionVectorForOneImage[count]);
+            int motionVectorForOneImage =calculateMotionVector(oriImagePixel,oriImagePixel_next);
+            System.out.println("count "+count+" motionVectorForOneImage["+count+"] "+motionVectorForOneImage);
+            writer.write(motionVectorForOneImage + "\n");
             count++;
-
          }//while end
+
+         writer.close();
 
          //caluculate the average motion vector for each shot
          double[] shotMotion=new double[shot_arr.size()/2];
-         for(int i=0;i<shotMotion.length;i=i+2)
-         {
+         for(int i=0;i<shotMotion.length;i=i+2) {
             int sum=0;
             int difference=shot_arr.get(i+1)-shot_arr.get(i);
-            for(int j=shot_arr.get(i);j<difference;j++)
-            {
+            for(int j=shot_arr.get(i);j<difference;j++) {
                sum=sum+shot_arr.get(j);
             }
 
             shotMotion[i]=sum/difference;
          }
-
-
-
-      }
-      catch (FileNotFoundException e)
-      {
-         e.printStackTrace();
-      }
-      catch (IOException e)
-      {
+      } catch (IOException e) {
          e.printStackTrace();
       }
    }
@@ -205,7 +181,7 @@ public class MotionVector{
          absoluteDifferenceForOneImage= (int) (absoluteDifferenceForOneImage+Math.sqrt(Math.pow(leftCorner[0]-target[0],2)+Math.pow(leftCorner[1]-target[1],2)));
         // System.out.println("absoluteDifferenceForOneImage "+absoluteDifferenceForOneImage);
       }
-      System.out.println("absoluteDifferenceForOneImage "+absoluteDifferenceForOneImage);
+//      System.out.println("absoluteDifferenceForOneImage "+absoluteDifferenceForOneImage);
       return absoluteDifferenceForOneImage;
    }
 
@@ -244,60 +220,36 @@ public class MotionVector{
    public void showIms(String[] args) throws FileNotFoundException {
 
       // Read a parameter from command line
-      String param1 = args[1];
-      shotBoundary=new File(args[1]);
-      Scanner myReader=new Scanner(shotBoundary);
-      System.out.println("The second parameter was: " + param1);
-      String delimeter=" ";
-      String[] temp;
-      int count=0;
-      while(myReader.hasNextLine())
-      {
-         String data = myReader.nextLine();
-         temp = data.split(delimeter);
-         shot_arr.add(Integer.parseInt(temp[0]));
-         System.out.println(shot_arr.get(count));
-         count++;
-         shot_arr.add(Integer.parseInt(temp[1]));
-         System.out.println(shot_arr.get(count));
-         count++;
-
-         // small=Float.parseFloat(temp[0]);
-        // small=Integer.parseInt(temp[0]);
-         //large=Integer.parseInt(temp[1]);
-      }
+//      String param1 = args[1];
+//      shotBoundary=new File(args[1]);
+//      Scanner myReader=new Scanner(shotBoundary);
+//      System.out.println("The second parameter was: " + param1);
+//      String delimeter=" ";
+//      String[] temp;
+//      int count=0;
+//      while(myReader.hasNextLine())
+//      {
+//         String data = myReader.nextLine();
+//         temp = data.split(delimeter);
+//         shot_arr.add(Integer.parseInt(temp[0]));
+//         System.out.println(shot_arr.get(count));
+//         count++;
+//         shot_arr.add(Integer.parseInt(temp[1]));
+//         System.out.println(shot_arr.get(count));
+//         count++;
+//
+//         // small=Float.parseFloat(temp[0]);
+//        // small=Integer.parseInt(temp[0]);
+//         //large=Integer.parseInt(temp[1]);
+//      }
 
       // Read in the specified image
-      imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-      imgTwo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-      readImageRGB(width, height, args[0], imgOne,imgTwo);
-
-      // Use label to display the image
-      frame = new JFrame();
-      GridBagLayout gLayout = new GridBagLayout();
-      frame.getContentPane().setLayout(gLayout);
-
-      lbIm1 = new JLabel(new ImageIcon(imgOne));
-
-      GridBagConstraints c = new GridBagConstraints();
-      c.fill = GridBagConstraints.HORIZONTAL;
-      c.anchor = GridBagConstraints.CENTER;
-      c.weightx = 0.5;
-      c.gridx = 0;
-      c.gridy = 0;
-
-      c.fill = GridBagConstraints.HORIZONTAL;
-      c.gridx = 0;
-      c.gridy = 1;
-      frame.getContentPane().add(lbIm1, c);
-
-      frame.pack();
-      frame.setVisible(true);
    }
 
-   public static void main(String[] args) throws FileNotFoundException {
-      MotionVector ren = new MotionVector();
-      ren.showIms(args);
+   public static void main(String[] args) {
+      String pathToRgb = args[0];
+      MotionVector motionVector = new MotionVector(pathToRgb);
+      motionVector.calculate();
    }
 
 }
