@@ -1,6 +1,5 @@
 package summarizer;
 
-import summarizer.calculations.motion.SAD;
 import summarizer.configs.VideoConfig;
 import summarizer.configs.VideoSummarizerAnalysisParams;
 import summarizer.entities.RGB;
@@ -39,7 +38,6 @@ public class VideoSummarizer {
         calculateShotBoundaries();
         System.out.println("calculating motion scores...");
         calculateMotionScore();
-//      TODO: calculate audio score
         System.out.println("calculating audio scores...");
         calculateAudioScore();
 //      TODO: calculate face detection score
@@ -55,7 +53,7 @@ public class VideoSummarizer {
     }
 
     public void calculateMotionScore() {
-        SAD.calculate(shots, pathToFrameRgb);
+        OutputUtil.setMotionVectorsFromFile(shots, VideoSummarizerAnalysisParams.MOTION_VECTORS_FILE_NAME);
     }
 
     public void calculateAudioScore() throws IOException {
