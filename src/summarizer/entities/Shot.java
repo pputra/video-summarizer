@@ -10,7 +10,7 @@ public class Shot {
     private int endFrame;
     private double motionLevel;
     private double audioLevel;
-
+    private int numFaces;
 
     public Shot(){ }
 
@@ -35,6 +35,10 @@ public class Shot {
         return audioLevel;
     }
 
+    public int getNumFaces() {
+        return numFaces;
+    }
+
     public int getTotalNumFrames() {
         return endFrame - startFrame + 1;
     }
@@ -45,6 +49,12 @@ public class Shot {
 
     public long getShotDurationInFemtoSecond() {
         return Math.round(getTotalNumFrames() / (float) VideoConfig.FRAMES_PER_SECOND * 1000000000000000.0);
+    }
+
+    public int getTotalScore() {
+        return (int) Math.round(motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
+                audioLevel * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT +
+                numFaces * VideoSummarizerAnalysisParams.NUM_FACES_WEIGHT);
     }
 
     public void setEndFrame(int endFrame) {
@@ -59,6 +69,10 @@ public class Shot {
         this.audioLevel = audioLevel;
     }
 
+    public void setNumFaces(int numFaces) {
+        this.numFaces = numFaces;
+    }
+
     @Override
     public String toString() {
         return "Shot{" +
@@ -66,6 +80,7 @@ public class Shot {
                 ", endFrame=" + endFrame +
                 ", motionLevel=" + motionLevel +
                 ", audioLevel=" + audioLevel +
+                ", numFaces=" + numFaces +
                 '}';
     }
 
@@ -75,15 +90,7 @@ public class Shot {
         }
 
         public static void sortByScoreDesc(List<Shot> shots) {
-            shots.sort((o1, o2) -> {
-                int score1 = (int) Math.round(o1.motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
-                        o1.getAudioLevel() * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT);
-
-                int score2 = (int) Math.round(o2.motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
-                        o2.getAudioLevel() * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT);
-
-                return score2 - score1;
-            });
+            shots.sort((o1, o2) -> o2.getTotalScore() - o1.getTotalScore());
         }
     }
 }
