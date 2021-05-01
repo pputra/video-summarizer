@@ -9,5 +9,5 @@ public class VideoSummarizerAnalysisParams {
 
     public static final String SHOT_BOUNDARIES_OUTPUT_FILENAME = "shot_boundaries.txt";
     public static final String NUM_DETECTED_FACES_OUTPUT_FILENAME = "num_detected_faces.txt";
-    public static final String AMPLITUDES_FILE_NAME = "meridian.txt";
+    public static final String AMPLITUDES_FILE_NAME = "amplitudes.txt";
 }

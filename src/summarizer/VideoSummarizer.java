@@ -1,5 +1,6 @@
 package summarizer;
 
+import summarizer.calculations.motion.SAD;
 import summarizer.configs.VideoConfig;
 import summarizer.configs.VideoSummarizerAnalysisParams;
 import summarizer.entities.RGB;
@@ -14,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 
-import static java.lang.Double.isInfinite;
 import static summarizer.configs.VideoConfig.AUDIO_SAMPLE_RATE;
 
 public class VideoSummarizer {
@@ -23,11 +23,10 @@ public class VideoSummarizer {
     private final String pathToFrameRgb;
 
     private final List<BufferedImage> originalFrames = new ArrayList<>();
-    private AudioInputStream originalAudioStream;
-    private List<BufferedImage> summarizedFrames = new ArrayList<>();
-    private Map<Integer, BufferedImage> frameImageCache = new HashMap<>();
-    private Set<Integer> summarizedFramesLabelSet = new HashSet<>();
-    private TreeSet<Integer> startFramesSet = new TreeSet<>();
+    private final List<BufferedImage> summarizedFrames = new ArrayList<>();
+    private final Map<Integer, BufferedImage> frameImageCache = new HashMap<>();
+    private final Set<Integer> summarizedFramesLabelSet = new HashSet<>();
+    private final TreeSet<Integer> startFramesSet = new TreeSet<>();
     private AudioInputStream summarizedAudioInputStream;
     private List<Shot> shots;
 
@@ -37,9 +36,9 @@ public class VideoSummarizer {
         this.pathToFrameRgb = pathToFrameRgb;
 
         System.out.println("calculating shot boundaries...");
-        shots = OutputUtil.readShotBoundariesFromFile(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
+        calculateShotBoundaries();
         System.out.println("calculating motion scores...");
-//        calculateMotionScore();
+        calculateMotionScore();
 //      TODO: calculate audio score
         System.out.println("calculating audio scores...");
         calculateAudioScore();
@@ -51,85 +50,13 @@ public class VideoSummarizer {
         generatedSummarizedVideo();
     }
 
-    public void analyzeShots() {
-        int startFrame = 0;
-
-        for (int i = 0; i < VideoConfig.NUM_FRAMES - 1; i++) {
-            int sumDiffR = 0;
-            int sumDiffG = 0;
-            int sumDiffB = 0;
-
-            RGB[][] currFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb",
-                    VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
-            RGB[][] nextFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + (i + 1) + ".rgb",
-                    VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
-
-            for(int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
-                for(int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
-                    byte currR = currFrameRgb[y][x].getR();
-                    byte currG = currFrameRgb[y][x].getG();
-                    byte currB = currFrameRgb[y][x].getB();
-
-                    byte nextR = nextFrameRgb[y][x].getR();
-                    byte nextG = nextFrameRgb[y][x].getG();
-                    byte nextB = nextFrameRgb[y][x].getB();
-
-                    sumDiffR += Math.abs(currR - nextR);
-                    sumDiffG += Math.abs(currG - nextG);
-                    sumDiffB += Math.abs(currB - nextB);
-                }
-            }
-
-            int avgDiff = (sumDiffR + sumDiffG + sumDiffB) / 3;
-
-            if (avgDiff >= VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_RGB_DIFF_AVG_THRESHOLD) {
-                Shot shot = new Shot(startFrame, i);
-                shots.add(shot);
-                startFrame = i + 1;
-                System.out.println(shot);
-            }
-        }
+    public void calculateShotBoundaries() {
+        shots = OutputUtil.readShotBoundariesFromFile(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
     }
 
     public void calculateMotionScore() {
-        for (Shot shot : shots) {
-            double sumAvgRgbDiff = 0;
-
-            for (int i = shot.getStartFrame(); i < shot.getEndFrame(); i++) {
-                RGB[][] currFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + i + ".rgb",
-                        VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
-                RGB[][] nextFrameRgb = ImageUtil.readRgbChannels(pathToFrameRgb + "frame" + (i + 1) + ".rgb",
-                        VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
-
-                int sumDiffR = 0;
-                int sumDiffG = 0;
-                int sumDiffB = 0;
-
-                for(int y = 0; y < VideoConfig.FRAMES_HEIGHT; y++) {
-                    for(int x = 0; x < VideoConfig.FRAMES_WIDTH; x++) {
-                        byte currR = currFrameRgb[y][x].getR();
-                        byte currG = currFrameRgb[y][x].getG();
-                        byte currB = currFrameRgb[y][x].getB();
-
-                        byte nextR = nextFrameRgb[y][x].getR();
-                        byte nextG = nextFrameRgb[y][x].getG();
-                        byte nextB = nextFrameRgb[y][x].getB();
-
-                        sumDiffR += Math.abs(currR - nextR);
-                        sumDiffG += Math.abs(currG - nextG);
-                        sumDiffB += Math.abs(currB - nextB);
-                    }
-                }
-
-                sumAvgRgbDiff += (sumDiffR + sumDiffG + sumDiffB) / 3.0;
-            }
-
-            //shot.setMotionLevel(Math.round(sumAvgRgbDiff / (double) shot.getTotalNumFrames()));
-            shot.setMotionLevel(0);
-
-        }
+        SAD.calculate(shots, pathToFrameRgb);
     }
-
 
     public void calculateAudioScore() throws IOException {
 
@@ -239,7 +166,6 @@ public class VideoSummarizer {
         buffReader.close();
     }
 
-
     public void generatedSummarizedVideo() {
         int currSummarizedFrames = 0;
         List<Shot> summarizedShots = new ArrayList<>();
@@ -279,10 +205,6 @@ public class VideoSummarizer {
 
     public List<BufferedImage> getOriginalFrames() {
         return originalFrames;
-    }
-
-    public AudioInputStream getOriginalAudioStream() {
-        return originalAudioStream;
     }
 
     public List<BufferedImage> getSummarizedFrames() {
