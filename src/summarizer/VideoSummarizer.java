@@ -40,7 +40,8 @@ public class VideoSummarizer {
         calculateMotionScore();
         System.out.println("calculating audio scores...");
         calculateAudioScore();
-//      TODO: calculate face detection score
+        System.out.println("calculating face score...");
+        calculateFaceScore();
         System.out.println("sorting shots by score...");
         Shot.Sorter.sortByScoreDesc(shots);
         shots.forEach((System.out::println));
@@ -131,7 +132,7 @@ public class VideoSummarizer {
             }
 
             double audioLevel = avgSumPerShot / (double) (cur_endFrame - cur_startFrame - 1);
-            System.out.println(audioLevel);
+//            System.out.println(audioLevel);
             shot.setAudioLevel(Double.parseDouble(String.format("%.5f", audioLevel)));   //shouldn't use shot.getTotalNumframe() cuz the current shot have already changed
 
 //            System.out.println("frame: " + shot.getStartFrame());
@@ -162,6 +163,10 @@ public class VideoSummarizer {
         }
         //System.out.println(frameIndex);
         buffReader.close();
+    }
+
+    public void calculateFaceScore() {
+        OutputUtil.setNumFacesFromFile(shots, VideoSummarizerAnalysisParams.NUM_DETECTED_FACES_OUTPUT_FILENAME);
     }
 
     public void generatedSummarizedVideo() {

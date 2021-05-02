@@ -86,4 +86,41 @@ public class OutputUtil {
             e.printStackTrace();
         }
     }
+
+    public static void setNumFacesFromFile(List<Shot> shots, String path) {
+        try {
+            File f = new File(path);
+            Scanner reader = new Scanner(f);
+
+            shots.forEach((shot -> {
+                int totalCount = 0;
+                int numShotContainFace = 0;
+
+                for (int i = shot.getStartFrame(); i <= shot.getEndFrame(); i++) {
+                    if (reader.hasNextLine()) {
+                        String[] tokens = reader.nextLine().split(" ");
+                        int numFrontalFace = Integer.parseInt(tokens[0]);
+                        int numSideFace = Integer.parseInt(tokens[1]);
+                        int numHeadAndShoulder = Integer.parseInt(tokens[2]);
+                        int numNose = Integer.parseInt(tokens[3]);
+
+                        if (numFrontalFace + numSideFace > 0) {
+                            totalCount += numFrontalFace + numSideFace;
+                            numShotContainFace++;
+                        } else if (numNose > 0) {
+                            totalCount += numNose;
+                            numShotContainFace++;
+                        }
+
+                    }
+                }
+
+                int avg = (int) Math.ceil(totalCount / (double) (numShotContainFace));
+
+                shot.setNumFaces((avg));
+            }));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -35,7 +35,7 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
     private Thread soundTh;
 
     private static volatile boolean isVideoPlaying = false;
-    private final int FRAME_OFFSET_DELAY = 18;
+    private final int FRAME_OFFSET_DELAY = 0;
 
     public PlayVideo(AudioInputStream audioInputStream, String rgbPath,
                      Set<Integer> summarizedFramesLabelSet, Map<Integer, BufferedImage> frameImageCache,
@@ -67,7 +67,7 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
                         loadFrame(Math.max(0, frameIndex - FRAME_OFFSET_DELAY));
                         frameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
                         slider.setValue((int) Math.round((sound.getCurrTimeMillisecond() / 1000.0)));
-                        Thread.sleep(1000 / VideoConfig.FRAMES_PER_SECOND);
+                        Thread.sleep(900 / VideoConfig.FRAMES_PER_SECOND);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();

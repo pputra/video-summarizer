@@ -52,6 +52,10 @@ public class Shot {
     }
 
     public int getTotalScore() {
+        if (numFaces <= 0) {
+            return 0;
+        }
+
         return (int) Math.round(motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
                 audioLevel * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT +
                 numFaces * VideoSummarizerAnalysisParams.NUM_FACES_WEIGHT);
