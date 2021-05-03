@@ -42,6 +42,8 @@ public class VideoSummarizer {
         calculateAudioScore();
         System.out.println("calculating face score...");
         calculateFaceScore();
+        System.out.println("normalizing scores...");
+        normalizeScores();
         System.out.println("sorting shots by score...");
         Shot.Sorter.sortByScoreDesc(shots);
         shots.forEach((System.out::println));
@@ -49,15 +51,15 @@ public class VideoSummarizer {
         generatedSummarizedVideo();
     }
 
-    public void calculateShotBoundaries() {
+    private void calculateShotBoundaries() {
         shots = OutputUtil.readShotBoundariesFromFile(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
     }
 
-    public void calculateMotionScore() {
+    private void calculateMotionScore() {
         OutputUtil.setMotionVectorsFromFile(shots, VideoSummarizerAnalysisParams.MOTION_VECTORS_FILE_NAME);
     }
 
-    public void calculateAudioScore() throws IOException {
+    private void calculateAudioScore() throws IOException {
 
         InputStreamReader reader = null;
         BufferedReader buffReader = null;
@@ -165,11 +167,17 @@ public class VideoSummarizer {
         buffReader.close();
     }
 
-    public void calculateFaceScore() {
+    private void calculateFaceScore() {
         OutputUtil.setNumFacesFromFile(shots, VideoSummarizerAnalysisParams.NUM_DETECTED_FACES_OUTPUT_FILENAME);
     }
 
-    public void generatedSummarizedVideo() {
+    private void normalizeScores() {
+        Shot.normalizeScore(shots, Shot.ScoringMetricTypes.MOTION);
+        Shot.normalizeScore(shots, Shot.ScoringMetricTypes.AUDIO);
+        Shot.normalizeScore(shots, Shot.ScoringMetricTypes.FACE);
+    }
+
+    private void generatedSummarizedVideo() {
         int currSummarizedFrames = 0;
         List<Shot> summarizedShots = new ArrayList<>();
 

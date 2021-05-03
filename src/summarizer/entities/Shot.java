@@ -10,7 +10,13 @@ public class Shot {
     private int endFrame;
     private double motionLevel;
     private double audioLevel;
-    private int numFaces;
+    private double numFaces;
+
+    public enum ScoringMetricTypes {
+        MOTION,
+        AUDIO,
+        FACE
+    }
 
     public Shot(){ }
 
@@ -35,7 +41,7 @@ public class Shot {
         return audioLevel;
     }
 
-    public int getNumFaces() {
+    public double getNumFaces() {
         return numFaces;
     }
 
@@ -51,14 +57,54 @@ public class Shot {
         return Math.round(getTotalNumFrames() / (float) VideoConfig.FRAMES_PER_SECOND * 1000000000000000.0);
     }
 
-    public int getTotalScore() {
-        if (numFaces <= 0) {
-            return 0;
+    public double getTotalScore() {
+//        if (numFaces <= 0) {
+//            return 0;
+//        }
+
+        return motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
+                audioLevel * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT +
+                numFaces * VideoSummarizerAnalysisParams.NUM_FACES_WEIGHT;
+    }
+
+    public static void normalizeScore(List<Shot> shots, ScoringMetricTypes type) {
+        double max = -1.0 * Double.MAX_VALUE;
+        double min = Double.MAX_VALUE;
+
+        for (Shot shot : shots) {
+            double currScore = 0.0;
+
+            switch (type) {
+                case MOTION:
+                    currScore = shot.getMotionLevel();
+                    break;
+                case AUDIO:
+                    currScore = shot.getAudioLevel();
+                    break;
+                case FACE:
+                    currScore = shot.getNumFaces();
+                    break;
+            }
+
+            max = Math.max(max, currScore);
+            min = Math.min(min, currScore);
         }
 
-        return (int) Math.round(motionLevel * VideoSummarizerAnalysisParams.MOTION_LEVEL_WEIGHT +
-                audioLevel * VideoSummarizerAnalysisParams.AUDIO_LEVEL_WEIGHT +
-                numFaces * VideoSummarizerAnalysisParams.NUM_FACES_WEIGHT);
+        double maxMinDiff = max - min;
+
+        for (Shot shot : shots) {
+            switch (type) {
+                case MOTION:
+                    shot.setMotionLevel(maxMinDiff > 0? ((shot.getMotionLevel() - min) / maxMinDiff) : 0);
+                    break;
+                case AUDIO:
+                    shot.setAudioLevel(maxMinDiff > 0? ((shot.getAudioLevel() - min) / maxMinDiff) : 0);
+                    break;
+                case FACE:
+                    shot.setNumFaces(maxMinDiff > 0? ((shot.getNumFaces() - min) / maxMinDiff) : 0);
+                    break;
+            }
+        }
     }
 
     public void setEndFrame(int endFrame) {
@@ -73,7 +119,7 @@ public class Shot {
         this.audioLevel = audioLevel;
     }
 
-    public void setNumFaces(int numFaces) {
+    public void setNumFaces(double numFaces) {
         this.numFaces = numFaces;
     }
 
@@ -94,7 +140,7 @@ public class Shot {
         }
 
         public static void sortByScoreDesc(List<Shot> shots) {
-            shots.sort((o1, o2) -> o2.getTotalScore() - o1.getTotalScore());
+            shots.sort((o1, o2) -> Double.compare(o2.getTotalScore(), o1.getTotalScore()));
         }
     }
 }

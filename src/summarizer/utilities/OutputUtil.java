@@ -115,9 +115,12 @@ public class OutputUtil {
                     }
                 }
 
-                int avg = (int) Math.ceil(totalCount / (double) (numShotContainFace));
-
-                shot.setNumFaces((avg));
+                if (numShotContainFace == 0) {
+                    shot.setNumFaces((0));
+                } else {
+                    double avg = totalCount / (double) (numShotContainFace);
+                    shot.setNumFaces((avg));
+                }
             }));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
