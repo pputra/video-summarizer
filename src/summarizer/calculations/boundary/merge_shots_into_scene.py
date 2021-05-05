@@ -4,10 +4,12 @@ import sys
 
 SEARCH_RANGE = 2000
 SSIM_TH = 0.6
+INPUT_FILE_NAME = 'meridian_boundaries.txt'
+OUTPUT_FILE_NAME = 'merged_boundaries.txt'
 
 if __name__ == '__main__':
     frames_path = sys.argv[1]
-    f = open('meridian_boundaries.txt', 'r')
+    f = open(INPUT_FILE_NAME, 'r')
 
     boundaries = []
 
@@ -76,3 +78,10 @@ if __name__ == '__main__':
         merged_boundaries.append([last_boundary + 1, 16199])
 
     print(merged_boundaries)
+
+    f = open(OUTPUT_FILE_NAME, 'w')
+
+    for start, end in merged_boundaries:
+        f.write(str(start) + ' ' + str(end) + '\n')
+
+    f.close()

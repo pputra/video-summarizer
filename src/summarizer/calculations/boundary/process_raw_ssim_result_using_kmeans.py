@@ -3,13 +3,15 @@ import numpy as np
 from sklearn.cluster import KMeans
 import collections
 
-N_CLUSTER = 10
+N_CLUSTER = 8
+INPUT_FILE_NAME = 'soccer_ssim_raw.txt'
+OUTPUT_FILE_NAME = 'kmeans_boundaries.txt'
 
 if __name__ == '__main__':
     x_axis_list = []
     y_axis_list = []
 
-    f = open('soccer_ssim_raw.txt', 'r')
+    f = open(INPUT_FILE_NAME, 'r')
 
     mat = []
     x_only_mat = []
@@ -41,11 +43,24 @@ if __name__ == '__main__':
     th1 = label_counts[-1][0]
     th2 = label_counts[-2][0]
 
+    f = open(OUTPUT_FILE_NAME, 'w')
+    start = 0
+    end = 0
+
     # print boundaries
     for i in range(len(cluster_labels)):
         curr_label = cluster_labels[i]
         if curr_label == th1:
-            print(i)
+            end = i
+            boundary = str(start) + ' ' + str(i) + '\n'
+            f.write(boundary)
+            print(boundary)
+            start = i + 1
+
+    if end != 16199:
+        f.write(str(start) + ' 16199\n')
+
+    f.close()
 
     plt.figure(figsize=(10, 7))
     # plt.scatter(mat[:, 0], mat[:, 1], c= y_kmeans, cmap='rainbow')
