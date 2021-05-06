@@ -3,12 +3,15 @@ import numpy as np
 from sklearn.cluster import KMeans
 import collections
 
-N_CLUSTER1 = 8
-N_CLUSTER2 = 3
-N_CLUSTER3 = 5
-N_CLUSTER4 = 4
+INITIAL_N_CLUSTER = 8
+INITIAL_CLUSTER_TO_INCLUDE = 1
+
+N_SUB_CLUSTERS = [3, 5, 4, 4]
+NEXT_SUB_CLUSTERS_TO_INCLUDE = [1, 2, 1, 1]
+
 
 result = []
+
 
 def write_boundaries(res):
     f = open('out.txt', 'w')
@@ -17,6 +20,18 @@ def write_boundaries(res):
         f.write(str(res[i]) + '\n')
 
     f.close()
+
+
+def get_n_smallest_cluster_labels(cluster_labels, num_last_n_clusters):
+    label_counts = collections.Counter(cluster_labels).most_common()
+    print(label_counts)
+    th_set = set()
+
+    for i in range(num_last_n_clusters):
+        th = label_counts[-1 * (i+1)][0]
+        th_set.add(th)
+    return th_set
+
 
 if __name__ == '__main__':
     x_axis_list = []
@@ -43,118 +58,41 @@ if __name__ == '__main__':
     mat = np.array(mat)
     x_only_mat = np.array(x_only_mat)
 
-    # kmeans
-    cluster = KMeans(n_clusters=N_CLUSTER1)
+    # initial kmeans to to remove non outliers
+    cluster = KMeans(n_clusters=INITIAL_N_CLUSTER)
     cluster.fit(x_only_mat)
     cluster_labels = cluster.predict(x_only_mat)
 
-    # get labels with the least count
-    label_counts = collections.Counter(cluster_labels).most_common()
-    print(label_counts)
-    th1 = label_counts[-1][0]
-    th2 = label_counts[-2][0]
+    outlier_label_set = get_n_smallest_cluster_labels(cluster_labels, INITIAL_CLUSTER_TO_INCLUDE)
 
-    # f = open('out.txt', 'w')
-    start = 0
-    end = 0
+    sub_mat = []
 
-    sec_mat = []
-
-    # print boundaries
     for i in range(len(cluster_labels)):
         curr_label = cluster_labels[i]
-        if curr_label == th1:
-            sec_mat.append([x_axis_list[i], i])
-            end = i
-            boundary = str(start) + ' ' + str(i) + '\n'
-            # f.write(boundary)
-            # print(boundary)
-            start = i + 1
+        if outlier_label_set.__contains__(curr_label):
+            sub_mat.append([x_axis_list[i], i])
 
-    # if end != 16199:
-    #     f.write(str(start) + ' 16199\n')
-    #
-    # f.close()
+    # recursively perform kmeans to filter outliers
+    sub_mat = np.array(sub_mat)
+    for i in range(len(N_SUB_CLUSTERS)):
+        cluster = KMeans(n_clusters=N_SUB_CLUSTERS[i])
+        cluster.fit(sub_mat)
+        cluster_labels = cluster.predict(sub_mat)
+        outlier_label_set = get_n_smallest_cluster_labels(cluster_labels, NEXT_SUB_CLUSTERS_TO_INCLUDE[i])
+
+        next_sub_mat = []
+        for j in range(len(cluster_labels)):
+            curr_label = cluster_labels[j]
+            if outlier_label_set.__contains__(curr_label):
+                result.append(sub_mat[j][1])
+            else:
+                next_sub_mat.append(sub_mat[j])
+        if i == len(N_SUB_CLUSTERS) - 1:
+            break
+        sub_mat = np.array(next_sub_mat)
 
     plt.figure(figsize=(10, 7))
-
-    # plt.scatter(x_axis_list, y_axis_list, c=cluster_labels, cmap='rainbow')
-
-    # start 2
-
-    sec_mat = np.array(sec_mat)
-
-
-    cluster = KMeans(n_clusters=N_CLUSTER2)
-    cluster.fit(sec_mat)
-    cluster_labels = cluster.predict(sec_mat)
-
-    label_counts = collections.Counter(cluster_labels).most_common()
-    print(label_counts)
-    th1 = label_counts[-1][0]
-    th2 = label_counts[-2][0]
-
-    third_mat = []
-    # print boundaries
-    for i in range(len(cluster_labels)):
-        curr_label = cluster_labels[i]
-        if curr_label == th1:
-            result.append(sec_mat[i][1])
-            print(sec_mat[i][1])
-        else:
-            third_mat.append(sec_mat[i])
-
-    # plt.scatter(sec_mat[:, 0], sec_mat[:, 1], c=cluster_labels, cmap='rainbow')
-
-    # start 3
-
-    third_mat = np.array(third_mat)
-
-    cluster = KMeans(n_clusters=N_CLUSTER3)
-    cluster.fit(third_mat)
-    cluster_labels = cluster.predict(third_mat)
-
-    label_counts = collections.Counter(cluster_labels).most_common()
-    print(label_counts)
-    th1 = label_counts[-1][0]
-    th2 = label_counts[-2][0]
-    th3 = label_counts[-3][0]
-
-    fourth_mat = []
-
-    # print boundaries
-    for i in range(len(cluster_labels)):
-        curr_label = cluster_labels[i]
-        if curr_label == th1 or curr_label == th2:
-            result.append(third_mat[i][1])
-            print(third_mat[i][1])
-        else:
-            fourth_mat.append(third_mat[i])
-
-    # plt.scatter(third_mat[:, 0], third_mat[:, 1], c=cluster_labels, cmap='rainbow')
-
-
-    # start 4
-    fourth_mat = np.array(fourth_mat)
-
-    cluster = KMeans(n_clusters=N_CLUSTER4)
-    cluster.fit(fourth_mat)
-    cluster_labels = cluster.predict(fourth_mat)
-
-    label_counts = collections.Counter(cluster_labels).most_common()
-    print(label_counts)
-    th1 = label_counts[-1][0]
-    th2 = label_counts[-2][0]
-    th3 = label_counts[-3][0]
-
-    # print boundaries
-    for i in range(len(cluster_labels)):
-        curr_label = cluster_labels[i]
-        if curr_label == th1:
-            result.append(fourth_mat[i][1])
-            print(fourth_mat[i][1])
-
-    plt.scatter(fourth_mat[:, 0], fourth_mat[:, 1], c=cluster_labels, cmap='rainbow')
+    plt.scatter(sub_mat[:, 0], sub_mat[:, 1], c=cluster_labels, cmap='rainbow')
 
     result.sort()
     write_boundaries(result)
