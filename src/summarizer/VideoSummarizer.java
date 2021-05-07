@@ -52,7 +52,7 @@ public class VideoSummarizer {
     }
 
     private void calculateShotBoundaries() {
-        shots = OutputUtil.readShotBoundariesFromFile(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
+        shots = OutputUtil.readShotBoundariesFromFileNoStartIndex(VideoSummarizerAnalysisParams.SHOT_BOUNDARIES_OUTPUT_FILENAME);
     }
 
     private void calculateMotionScore() {

@@ -44,6 +44,33 @@ public class OutputUtil {
         return shots;
     }
 
+    public static List<Shot> readShotBoundariesFromFileNoStartIndex(String path) {
+        List<Shot> shots = new ArrayList<>();
+
+        try {
+            File f = new File(path);
+            Scanner reader = new Scanner(f);
+
+            int start = 0;
+            int end = 0;
+            while (reader.hasNextLine()) {
+                String[] tokens = reader.nextLine().split(" ");
+                end = Integer.parseInt(tokens[0]);
+                Shot shot = new Shot(start, end);
+                start = end + 1;
+                shots.add(shot);
+            }
+
+            if (end != 1699) {
+                shots.add(new Shot(end + 1, 16199));
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return shots;
+    }
+
     public static Set<Integer> shotsToFrameLabelSet(List<Shot> shots) {
         Set<Integer> frameLabelSet = new HashSet<>();
 

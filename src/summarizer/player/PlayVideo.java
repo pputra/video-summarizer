@@ -67,9 +67,9 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
                         loadFrame(Math.max(0, frameIndex - FRAME_OFFSET_DELAY));
                         frameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
                         slider.setValue((int) Math.round((sound.getCurrTimeMillisecond() / 1000.0)));
-                        Thread.sleep(900 / VideoConfig.FRAMES_PER_SECOND);
+//                        Thread.sleep(900 / VideoConfig.FRAMES_PER_SECOND);
                     }
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -82,6 +82,7 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
                 int currFrameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
 
                 if (!summarizedFramesLabelSet.contains(currFrameIndex)) {
+                    sound.pause();
                     while (!summarizedFramesLabelSet.contains(currFrameIndex)) {
                         currFrameIndex++;
 
@@ -90,9 +91,11 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
                         }
                     }
 
+//                    currFrameIndex = (int) (sound.getCurrTimeMillisecond() * VideoConfig.FRAMES_PER_SECOND / 1000);
                     long startTimeInMicroSec = Math.round(currFrameIndex / (float) VideoConfig.FRAMES_PER_SECOND * 1000000.0f);
 
                     sound.setCurrTimeInMicroSecond(startTimeInMicroSec);
+                    sound.play();
                 }
 
                 if (isVideoPlaying) {
@@ -136,7 +139,11 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
 
     private void loadFrame(int i) {
         if (frameImageCache.containsKey(i)) {
-            framesLabel.setIcon(new ImageIcon(frameImageCache.get(i)));
+            ImageIcon icon = new ImageIcon(frameImageCache.get(i));
+            Image img = icon.getImage();
+            Image newImg = img.getScaledInstance(400, 300, Image.SCALE_SMOOTH);
+            ImageIcon newImc = new ImageIcon(newImg);
+            framesLabel.setIcon(newImc);
 
             return;
         }
@@ -144,7 +151,12 @@ public class PlayVideo extends JFrame implements ActionListener, ChangeListener 
         RGB[][] rgbChannels = ImageUtil.readRgbChannels(this.RGB_PATH + "frame" + i + ".rgb",
                 VideoConfig.FRAMES_HEIGHT, VideoConfig.FRAMES_WIDTH);
 
-        framesLabel.setIcon(new ImageIcon(ImageUtil.rgbChannelsToBufferedImage(rgbChannels)));
+        ImageIcon icon = new ImageIcon(ImageUtil.rgbChannelsToBufferedImage(rgbChannels));
+        Image img = icon.getImage();
+        Image newImg = img.getScaledInstance(400, 300, Image.SCALE_SMOOTH);
+        ImageIcon newImc = new ImageIcon(newImg);
+
+        framesLabel.setIcon(newImc);
     }
 
     @Override
