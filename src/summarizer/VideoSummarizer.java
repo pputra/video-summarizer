@@ -14,8 +14,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 
-import static summarizer.configs.VideoConfig.AUDIO_SAMPLE_RATE;
-
 public class VideoSummarizer {
     private final String pathToFrame;
     private final String pathToAudio;
@@ -76,7 +74,11 @@ public class VideoSummarizer {
             e.printStackTrace();
         }
 
-        int samplesPerFrames = AUDIO_SAMPLE_RATE / VideoConfig.FRAMES_PER_SECOND;
+        buffReader = new BufferedReader(reader);
+
+        int sampleRate = Integer.parseInt(buffReader.readLine());
+
+        int samplesPerFrames = sampleRate / VideoConfig.FRAMES_PER_SECOND;
 
         double leftChannel = 0;
         double rightChannel = 0;
@@ -88,7 +90,6 @@ public class VideoSummarizer {
         double[] tmp_arr = new double[VideoSummarizerAnalysisParams.AUDIO_BUFFER_SIZE];
 
         try{
-            buffReader = new BufferedReader(reader);
             String strTmp = "";
 
             while((strTmp = buffReader.readLine())!=null){
